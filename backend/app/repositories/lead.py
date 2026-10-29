@@ -12,11 +12,27 @@ def create(db: Session, lead: Lead) -> Lead:
     return lead
 
 
-def get_by_id(db: Session, lead_id: int) -> Lead | None:
-    return db.get(Lead, lead_id)
+def get_by_id(
+    db: Session,
+    lead_id: int,
+    user_id: int,
+) -> Lead | None:
+    statement = select(Lead).where(
+        Lead.id == lead_id,
+        Lead.user_id == user_id,
+    )
+
+    return db.scalar(statement)
 
 
-def list_all(db: Session) -> list[Lead]:
-    statement = select(Lead).order_by(Lead.created_at.desc())
+def list_all(
+    db: Session,
+    user_id: int,
+) -> list[Lead]:
+    statement = (
+        select(Lead)
+        .where(Lead.user_id == user_id)
+        .order_by(Lead.created_at.desc())
+    )
 
     return list(db.scalars(statement).all())

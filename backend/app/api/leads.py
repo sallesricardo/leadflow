@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.auth import get_current_user
 from app.core.database import get_db
 from app.models.lead import Lead
+from app.models.user import User
 from app.repositories import lead as lead_repository
 from app.schemas.lead import LeadCreate, LeadResponse, LeadUpdate
 
@@ -20,9 +22,13 @@ router = APIRouter(
 )
 def create_lead(
     payload: LeadCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    lead = Lead(**payload.model_dump())
+    lead = Lead(
+        **payload.model_dump(),
+        user_id=current_user.id,
+    )
 
     return lead_repository.create(db, lead)
 
@@ -32,9 +38,13 @@ def create_lead(
     response_model=list[LeadResponse],
 )
 def list_leads(
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return lead_repository.list_all(db)
+    return lead_repository.list_all(
+        db,
+        current_user.id,
+    )
 
 
 @router.get(
@@ -43,9 +53,14 @@ def list_leads(
 )
 def get_lead(
     lead_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    lead = lead_repository.get_by_id(db, lead_id)
+    lead = lead_repository.get_by_id(
+        db,
+        lead_id,
+        current_user.id,
+    )
 
     if lead is None:
         raise HTTPException(
@@ -63,9 +78,14 @@ def get_lead(
 def update_lead(
     lead_id: int,
     payload: LeadUpdate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    lead = lead_repository.get_by_id(db, lead_id)
+    lead = lead_repository.get_by_id(
+        db,
+        lead_id,
+        current_user.id,
+    )
 
     if lead is None:
         raise HTTPException(
