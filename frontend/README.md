@@ -1,36 +1,198 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LeadFlow Frontend
 
-## Getting Started
+Frontend da aplicação LeadFlow.
 
-First, run the development server:
+O frontend fornece a interface para autenticação, visualização do pipeline de leads e gerenciamento das informações do CRM.
+
+## Stack
+
+- Next.js
+- React
+- TypeScript
+- CSS Modules
+
+## Estrutura
+
+```text
+frontend/
+├── src/
+│   ├── app/
+│   │   ├── login/
+│   │   │   ├── page.tsx
+│   │   │   └── page.module.css
+│   │   │
+│   │   ├── dashboard/
+│   │   │   ├── page.tsx
+│   │   │   └── page.module.css
+│   │   │
+│   │   ├── page.tsx
+│   │   └── layout.tsx
+│   │
+│   └── lib/
+│       ├── api.ts
+│       └── types.ts
+│
+├── public/
+├── .env.local
+├── .env.example
+├── package.json
+└── README.md
+```
+
+## Instalação
+
+Na raiz do projeto:
+
+```bash
+cd frontend
+```
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+## Configuração
+
+Crie `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+A variável define o endereço da API utilizada pelo frontend.
+
+## Desenvolvimento
+
+Execute:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A aplicação estará disponível em:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Build
 
-## Learn More
+Criar uma build de produção:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Executar a build:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm start
+```
 
-## Deploy on Vercel
+## Lint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run lint
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Autenticação
+
+O frontend realiza login através da API:
+
+```text
+POST /api/v1/auth/login
+```
+
+Após o login, o JWT é armazenado localmente e enviado nas requisições protegidas através do header:
+
+```http
+Authorization: Bearer <token>
+```
+
+## Comunicação com a API
+
+As requisições são centralizadas em:
+
+```text
+src/lib/api.ts
+```
+
+Exemplo:
+
+```typescript
+apiFetch<Lead[]>("/api/v1/leads", {
+  token,
+});
+```
+
+Isso evita duplicação da lógica de comunicação com o backend.
+
+## Dashboard
+
+O dashboard apresenta os leads organizados em um pipeline Kanban:
+
+```text
+NEW
+ │
+ ▼
+CONTACTED
+ │
+ ▼
+QUALIFIED
+ │
+ ▼
+PROPOSAL
+ │
+ ▼
+NEGOTIATION
+ │
+ ├──► WON
+ │
+ └──► LOST
+```
+
+## Funcionalidades
+
+### Implementadas
+
+- [x] Página de login
+- [x] Autenticação com API
+- [x] Dashboard
+- [x] Kanban de leads
+- [x] Logout
+- [x] Comunicação centralizada com API
+
+### Em desenvolvimento
+
+- [ ] Cadastro de usuário
+- [ ] Criar lead
+- [ ] Editar lead
+- [ ] Tela de detalhes
+- [ ] Alterar status
+- [ ] Timeline de atividades
+- [ ] Dashboard com métricas
+- [ ] Follow-ups
+- [ ] Tarefas
+- [ ] Responsividade aprimorada
+
+## Desenvolvimento
+
+O frontend utiliza CSS Modules em vez de um framework de CSS utilitário.
+
+Os componentes e páginas devem permanecer preferencialmente próximos ao contexto funcional ao qual pertencem.
+
+A comunicação com o backend deve passar por `src/lib/api.ts`.
+
+Tipos compartilhados entre as páginas devem ser definidos em `src/lib/types.ts`.
+
+## Produção
+
+As configurações específicas de produção deverão ser fornecidas através de variáveis de ambiente.
+
+A URL da API deve ser configurada através de:
+
+```env
+NEXT_PUBLIC_API_URL=<api-url>
+```
