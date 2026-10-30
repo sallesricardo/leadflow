@@ -79,11 +79,16 @@
   gap: 10px;
 }
 
+.leadCard {
+  cursor: pointer;
+}
+
 .card {
   padding: 16px;
   border: 1px solid #e1e3e8;
   border-radius: 10px;
   background: white;
+  cursor: pointer;
 }
 
 .card h3 {

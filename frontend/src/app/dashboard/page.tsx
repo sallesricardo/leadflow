@@ -33,7 +33,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const token =
-      localStorage.getItem("leadflow_token");
+      localStorage.getItem("leadflow_token") ?? undefined;
 
     if (!token) {
       router.replace("/login");
@@ -161,6 +161,7 @@ export default function DashboardPage() {
                 {columnLeads.map((lead) => (
                   <article
                     className={styles.card}
+                    onClick={() => router.push(`/dashboard/leads/${lead.id}`)}
                     key={lead.id}
                   >
                     <h3>{lead.name}</h3>

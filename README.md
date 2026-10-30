@@ -260,10 +260,10 @@ http://localhost:8000/docs
 - [x] Dashboard
 - [x] Kanban de leads
 - [x] Histórico de atividades
+- [x] Tela de detalhes do lead
 
 ### Em desenvolvimento
 
-- [ ] Tela de detalhes do lead
 - [ ] Edição de leads pelo frontend
 - [ ] Alteração de status pelo frontend
 - [ ] Timeline de atividades

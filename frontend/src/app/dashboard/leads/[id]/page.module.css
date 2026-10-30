@@ -1,0 +1,120 @@
+.container {
+  min-height: 100vh;
+  padding: 32px;
+  background: #f5f7fa;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.header p {
+  margin: 4px 0 0;
+  color: #666;
+}
+
+.backButton {
+  border: 1px solid #ddd;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 24px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 24px;
+}
+
+.card h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0;
+}
+
+.details div {
+  display: grid;
+  gap: 4px;
+}
+
+.details dt {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.details dd {
+  margin: 0;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity {
+  border-left: 3px solid #ddd;
+  padding-left: 16px;
+}
+
+.activityHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.activityHeader strong {
+  font-size: 14px;
+}
+
+.activityHeader time {
+  color: #777;
+  font-size: 13px;
+}
+
+.activity p {
+  margin: 8px 0 0;
+  color: #444;
+}
+
+.empty {
+  color: #777;
+}
+
+@media (max-width: 800px) {
+  .container {
+    padding: 20px;
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .activityHeader {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
