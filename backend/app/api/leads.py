@@ -8,6 +8,13 @@ from app.models.user import User
 from app.repositories import lead as lead_repository
 from app.schemas.lead import LeadCreate, LeadResponse, LeadUpdate
 
+from app.models.lead_activity import LeadActivity
+from app.repositories import lead_activity as activity_repository
+from app.schemas.lead_activity import (
+    LeadActivityCreate,
+    LeadActivityResponse,
+)
+
 
 router = APIRouter(
     prefix="/leads",
@@ -102,3 +109,63 @@ def update_lead(
     db.refresh(lead)
 
     return lead
+
+@router.get(
+    "/{lead_id}/activities",
+    response_model=list[LeadActivityResponse],
+)
+def list_activities(
+    lead_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    lead = lead_repository.get_by_id(
+        db,
+        lead_id,
+        current_user.id,
+    )
+
+    if lead is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Lead not found",
+        )
+
+    return activity_repository.list_by_lead(
+        db,
+        lead_id,
+        current_user.id,
+    )
+
+
+@router.post(
+    "/{lead_id}/activities",
+    response_model=LeadActivityResponse,
+    status_code=201,
+)
+def create_activity(
+    lead_id: int,
+    payload: LeadActivityCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    lead = lead_repository.get_by_id(
+        db,
+        lead_id,
+        current_user.id,
+    )
+
+    if lead is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Lead not found",
+        )
+
+    activity = LeadActivity(
+        lead_id=lead_id,
+        user_id=current_user.id,
+        type=payload.type,
+        content=payload.content,
+    )
+
+    return activity_repository.create(db, activity)
