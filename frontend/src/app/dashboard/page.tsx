@@ -1,199 +1,94 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-
-import { apiFetch } from "@/lib/api";
-import { Lead, LeadStatus } from "@/lib/types";
-
-import styles from "./page.module.css";
-
-
-const columns: {
-  status: LeadStatus;
-  label: string;
-}[] = [
-  { status: "NEW", label: "Novos" },
-  { status: "CONTACTED", label: "Contato" },
-  { status: "QUALIFIED", label: "Qualificados" },
-  { status: "PROPOSAL", label: "Proposta" },
-  { status: "NEGOTIATION", label: "Negociação" },
-  { status: "WON", label: "Fechados" },
-  { status: "LOST", label: "Perdidos" },
-];
-
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function DashboardPage() {
-  const router = useRouter();
-
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-
-  useEffect(() => {
-    const token =
-      localStorage.getItem("leadflow_token") ?? undefined;
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    async function loadLeads() {
-      try {
-        const data = await apiFetch<Lead[]>(
-          "/api/v1/leads",
-          { token },
-        );
-
-        setLeads(data);
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message.toLowerCase().includes("token")
-        ) {
-          localStorage.removeItem(
-            "leadflow_token",
-          );
-
-          router.replace("/login");
-          return;
-        }
-
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Erro ao carregar leads.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadLeads();
-  }, [router]);
-
-
-  const leadsByStatus = useMemo(() => {
-    return columns.reduce(
-      (result, column) => {
-        result[column.status] = leads.filter(
-          (lead) =>
-            lead.status === column.status,
-        );
-
-        return result;
-      },
-      {} as Record<LeadStatus, Lead[]>,
-    );
-  }, [leads]);
-
-
-  function logout() {
-    localStorage.removeItem(
-      "leadflow_token",
-    );
-
-    router.replace("/login");
-  }
-
-
-  if (loading) {
-    return (
-      <main className={styles.loading}>
-        Carregando...
-      </main>
-    );
-  }
-
-
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <span className={styles.logo}>
-            LeadFlow
-          </span>
+    <div className="flex flex-1 flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Dashboard
+        </h1>
 
-          <h1>Pipeline</h1>
+        <p className="text-sm text-muted-foreground">
+          Visão geral dos seus leads e oportunidades.
+        </p>
+      </div>
 
-          <p>
-            Acompanhe suas oportunidades de venda.
-          </p>
-        </div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Total de leads
+            </CardTitle>
+          </CardHeader>
 
-        <button
-          className={styles.logout}
-          onClick={logout}
-        >
-          Sair
-        </button>
-      </header>
-
-
-      {error && (
-        <div className={styles.error}>
-          {error}
-        </div>
-      )}
-
-
-      <section className={styles.board}>
-        {columns.map((column) => {
-          const columnLeads =
-            leadsByStatus[column.status] ?? [];
-
-          return (
-            <div
-              className={styles.column}
-              key={column.status}
-            >
-              <div className={styles.columnHeader}>
-                <h2>{column.label}</h2>
-
-                <span>
-                  {columnLeads.length}
-                </span>
-              </div>
-
-              <div className={styles.cards}>
-                {columnLeads.map((lead) => (
-                  <article
-                    className={styles.card}
-                    onClick={() => router.push(`/dashboard/leads/${lead.id}`)}
-                    key={lead.id}
-                  >
-                    <h3>{lead.name}</h3>
-
-                    {lead.source && (
-                      <span
-                        className={styles.source}
-                      >
-                        {lead.source}
-                      </span>
-                    )}
-
-                    {lead.email && (
-                      <p>{lead.email}</p>
-                    )}
-
-                    {lead.phone && (
-                      <p>{lead.phone}</p>
-                    )}
-                  </article>
-                ))}
-
-                {columnLeads.length === 0 && (
-                  <div className={styles.empty}>
-                    Nenhum lead
-                  </div>
-                )}
-              </div>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              0
             </div>
-          );
-        })}
-      </section>
-    </main>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Novos
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="text-2xl font-bold">
+              0
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Em negociação
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="text-2xl font-bold">
+              0
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Ganhos
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="text-2xl font-bold">
+              0
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="flex-1">
+        <CardHeader>
+          <CardTitle>Pipeline</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <div className="flex min-h-[300px] items-center justify-center rounded-lg border border-dashed">
+            <p className="text-sm text-muted-foreground">
+              Pipeline será implementado aqui.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
