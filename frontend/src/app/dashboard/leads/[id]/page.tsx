@@ -23,6 +23,12 @@ export default function LeadDetailsPage() {
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<Lead["status"]>("NEW");
 
+  const [activityType, setActivityType] =
+    useState<LeadActivity["type"]>("NOTE");
+
+  const [activityContent, setActivityContent] = useState("");
+  const [creatingActivity, setCreatingActivity] = useState(false);
+
   const [saving, setSaving] = useState(false);
 
   const [lead, setLead] = useState<Lead | null>(null);
@@ -128,6 +134,71 @@ export default function LeadDetailsPage() {
         <button onClick={() => router.push("/dashboard")}>Voltar</button>
       </main>
     );
+  }
+
+  async function handleCreateActivity() {
+    const token = localStorage.getItem("leadflow_token");
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    if (!activityContent.trim()) {
+      return;
+    }
+
+    setCreatingActivity(true);
+
+    try {
+      await apiFetch<LeadActivity>(`/api/v1/leads/${leadId}/activities`, {
+        method: "POST",
+        token,
+        body: JSON.stringify({
+          type: activityType,
+          content: activityContent.trim(),
+        }),
+      });
+
+      const updatedActivities = await apiFetch<LeadActivity[]>(
+        `/api/v1/leads/${leadId}/activities`,
+        { token },
+      );
+
+      setActivities(updatedActivities);
+      setActivityContent("");
+      setActivityType("NOTE");
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível registrar a atividade.",
+      );
+    } finally {
+      setCreatingActivity(false);
+    }
+  }
+
+  function getActivityLabel(type: LeadActivity["type"]) {
+    switch (type) {
+      case "NOTE":
+        return "Nota";
+
+      case "CALL":
+        return "Ligação";
+
+      case "MESSAGE":
+        return "Mensagem";
+
+      case "EMAIL":
+        return "E-mail";
+
+      case "STATUS_CHANGE":
+        return "Alteração de status";
+
+      default:
+        return type;
+    }
   }
 
   return (
@@ -255,6 +326,57 @@ export default function LeadDetailsPage() {
                 <dd>{lead.notes || "Nenhuma observação."}</dd>
               </div>
             </dl>
+          )}
+        </div>
+        <div className={styles.card}>
+          <h2>Atividades</h2>
+          <div className={styles.activityForm}>
+            <div className={styles.activityFormRow}>
+              <select
+                value={activityType}
+                onChange={(event) =>
+                  setActivityType(event.target.value as LeadActivity["type"])
+                }
+              >
+                <option value="NOTE">Nota</option>
+                <option value="CALL">Ligação</option>
+                <option value="MESSAGE">Mensagem</option>
+                <option value="EMAIL">E-mail</option>
+              </select>
+
+              <button
+                onClick={handleCreateActivity}
+                disabled={creatingActivity || !activityContent.trim()}
+              >
+                {creatingActivity ? "Registrando..." : "Adicionar"}
+              </button>
+            </div>
+
+            <textarea
+              value={activityContent}
+              onChange={(event) => setActivityContent(event.target.value)}
+              placeholder="Descreva a interação com o lead..."
+              rows={3}
+            />
+          </div>
+          {activities.length === 0 ? (
+            <p className={styles.empty}>Nenhuma atividade registrada.</p>
+          ) : (
+            <div className={styles.timeline}>
+              {activities.map((activity) => (
+                <article key={activity.id} className={styles.activity}>
+                  <div className={styles.activityHeader}>
+                    <strong>{getActivityLabel(activity.type)}</strong>
+
+                    <time>
+                      {new Date(activity.created_at).toLocaleString("pt-BR")}
+                    </time>
+                  </div>
+
+                  {activity.content && <p>{activity.content}</p>}
+                </article>
+              ))}
+            </div>
           )}
         </div>
       </section>

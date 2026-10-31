@@ -165,3 +165,47 @@
   gap: 8px;
   margin-top: 8px;
 }
+
+.activityForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.activityFormRow {
+  display: flex;
+  gap: 8px;
+}
+
+.activityForm select,
+.activityForm textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.activityForm select {
+  min-width: 140px;
+}
+
+.activityForm textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.activityForm button {
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.activityForm button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

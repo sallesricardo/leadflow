@@ -7,7 +7,7 @@ from app.models.lead import Lead
 from app.models.user import User
 from app.repositories import lead as lead_repository
 from app.schemas.lead import LeadCreate, LeadResponse, LeadUpdate
-from app.services import lead_service
+from app.services import lead_service, activity_service
 
 from app.models.lead_activity import LeadActivity
 from app.repositories import lead_activity as activity_repository
@@ -169,4 +169,4 @@ def create_activity(
         content=payload.content,
     )
 
-    return activity_repository.create(db, activity)
+    return activity_service.create_activity(db, activity)
