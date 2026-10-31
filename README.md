@@ -261,12 +261,12 @@ http://localhost:8000/docs
 - [x] Kanban de leads
 - [x] Histórico de atividades
 - [x] Tela de detalhes do lead
+- [x] Edição de leads pelo frontend
+- [x] Alteração de status pelo frontend
+- [x] Timeline de atividades
 
 ### Em desenvolvimento
 
-- [ ] Edição de leads pelo frontend
-- [ ] Alteração de status pelo frontend
-- [ ] Timeline de atividades
 - [ ] Dashboard com métricas
 - [ ] Follow-ups
 - [ ] Tarefas
