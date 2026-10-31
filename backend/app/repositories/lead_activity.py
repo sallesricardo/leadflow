@@ -9,8 +9,7 @@ def create(
     activity: LeadActivity,
 ) -> LeadActivity:
     db.add(activity)
-    db.commit()
-    db.refresh(activity)
+    db.flush()
 
     return activity
 

@@ -7,6 +7,7 @@ from app.models.lead import Lead
 from app.models.user import User
 from app.repositories import lead as lead_repository
 from app.schemas.lead import LeadCreate, LeadResponse, LeadUpdate
+from app.services import lead_service
 
 from app.models.lead_activity import LeadActivity
 from app.repositories import lead_activity as activity_repository
@@ -102,13 +103,13 @@ def update_lead(
 
     changes = payload.model_dump(exclude_unset=True)
 
-    for field, value in changes.items():
-        setattr(lead, field, value)
+    return lead_service.update_lead(
+        db,
+        lead,
+        changes,
+        current_user.id,
+    )
 
-    db.commit()
-    db.refresh(lead)
-
-    return lead
 
 @router.get(
     "/{lead_id}/activities",

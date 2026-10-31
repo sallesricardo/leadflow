@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
+from app.domain.lead import LeadStatus
+
 
 class LeadCreate(BaseModel):
     name: str
@@ -16,7 +18,7 @@ class LeadUpdate(BaseModel):
     email: EmailStr | None = None
     phone: str | None = None
     source: str | None = None
-    status: str | None = None
+    status: LeadStatus | None = None
     notes: str | None = None
 
 
@@ -28,7 +30,7 @@ class LeadResponse(BaseModel):
     email: str | None
     phone: str | None
     source: str | None
-    status: str
+    status: LeadStatus
     notes: str | None
     created_at: datetime
     updated_at: datetime
