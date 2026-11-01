@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   DndContext,
@@ -13,7 +13,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus } from "lucide-react";
+import { GripVertical, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { apiFetch } from "@/lib/api";
@@ -33,13 +33,8 @@ const columns: { status: LeadStatus; title: string }[] = [
 ];
 
 function DraggableLead({ lead }: { lead: Lead }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useDraggable({ id: `lead-${lead.id}` });
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({ id: `lead-${lead.id}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -133,6 +128,8 @@ function KanbanColumn({
 }
 
 export function LeadKanban() {
+  const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("ALL");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -155,9 +152,7 @@ export function LeadKanban() {
       setLeads(data);
     } catch (err) {
       toast.error(
-        err instanceof Error
-            ? err.message
-            : "Erro ao carregar os leads.",
+        err instanceof Error ? err.message : "Erro ao carregar os leads.",
       );
     } finally {
       setLoading(false);
@@ -167,6 +162,31 @@ export function LeadKanban() {
   useEffect(() => {
     loadLeads();
   }, [loadLeads]);
+
+  const sources = useMemo(() => {
+    const values = leads
+      .map((lead) => lead.source)
+      .filter((source): source is string => Boolean(source));
+
+    return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+  }, [leads]);
+
+  const filteredLeads = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return leads.filter((lead) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        lead.name.toLowerCase().includes(normalizedSearch) ||
+        lead.email?.toLowerCase().includes(normalizedSearch) ||
+        lead.phone?.toLowerCase().includes(normalizedSearch);
+
+      const matchesSource =
+        sourceFilter === "ALL" || lead.source === sourceFilter;
+
+      return matchesSearch && matchesSource;
+    });
+  }, [leads, search, sourceFilter]);
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -233,6 +253,9 @@ export function LeadKanban() {
           <p className="text-sm text-muted-foreground">
             Acompanhe seus leads em cada etapa do funil.
           </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {filteredLeads.length} de {leads.length} leads
+          </p>
         </div>
 
         <Button render={<Link href="/dashboard/leads/new" />}>
@@ -240,7 +263,56 @@ export function LeadKanban() {
           Novo lead
         </Button>
       </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar por nome, e-mail ou telefone..."
+            className="h-10 w-full rounded-md border bg-background pl-9 pr-9 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Limpar busca"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
+
+        <select
+          value={sourceFilter}
+          onChange={(event) => setSourceFilter(event.target.value)}
+          className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="ALL">Todas as origens</option>
+
+          {sources.map((source) => (
+            <option key={source} value={source}>
+              {source}
+            </option>
+          ))}
+        </select>
+
+        {(search || sourceFilter !== "ALL") && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setSearch("");
+              setSourceFilter("ALL");
+            }}
+          >
+            Limpar filtros
+          </Button>
+        )}
+      </div>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -252,8 +324,8 @@ export function LeadKanban() {
               key={column.status}
               status={column.status}
               title={column.title}
-              leads={leads.filter(
-                (lead) => lead.status === column.status,
+              leads={filteredLeads.filter(
+                (lead) => lead.status === column.status
               )}
             />
           ))}
