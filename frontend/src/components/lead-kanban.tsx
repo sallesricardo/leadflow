@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -15,6 +14,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 import { apiFetch } from "@/lib/api";
 import type { Lead, LeadStatus } from "@/lib/types";
@@ -137,7 +137,6 @@ function KanbanColumn({
 export function LeadKanban() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -154,12 +153,13 @@ export function LeadKanban() {
     }
 
     try {
-      setError(null);
       const data = await apiFetch<Lead[]>("/api/v1/leads", { token });
       setLeads(data);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao carregar os leads.",
+      toast.error(
+        err instanceof Error
+            ? err.message
+            : "Erro ao carregar os leads.",
       );
     } finally {
       setLoading(false);
@@ -202,9 +202,10 @@ export function LeadKanban() {
         token,
         body: JSON.stringify({ status: newStatus }),
       });
+      toast.success("Lead movido com sucesso.");
     } catch (err) {
       setLeads(previousLeads);
-      setError(
+      toast.error(
         err instanceof Error
           ? `Não foi possível mover o lead: ${err.message}`
           : "Não foi possível atualizar o lead.",
@@ -243,19 +244,6 @@ export function LeadKanban() {
           </Link>
         </Button>
       </div>
-
-      {error && (
-        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          {error}
-          <button
-            type="button"
-            className="ml-2 underline"
-            onClick={() => setError(null)}
-          >
-            Fechar
-          </button>
-        </div>
-      )}
 
       <DndContext
         sensors={sensors}
