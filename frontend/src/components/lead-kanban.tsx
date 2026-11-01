@@ -78,9 +78,7 @@ function DraggableLead({ lead }: { lead: Lead }) {
       )}
 
       {lead.phone && (
-        <p className="mt-1 text-sm text-muted-foreground">
-          {lead.phone}
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{lead.phone}</p>
       )}
 
       {lead.source && (
@@ -215,7 +213,7 @@ export function LeadKanban() {
 
   if (loading) {
     return (
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex min-w-0 max-w-full gap-4 overflow-x-auto pb-4">
         {columns.map((column) => (
           <div key={column.status} className="w-72 shrink-0 space-y-3">
             <Skeleton className="h-12 w-full" />
@@ -237,11 +235,9 @@ export function LeadKanban() {
           </p>
         </div>
 
-        <Button asChild>
-          <Link href="/dashboard/leads/new">
-            <Plus className="mr-2 size-4" />
-            Novo lead
-          </Link>
+        <Button render={<Link href="/dashboard/leads/new" />}>
+          <Plus className="mr-2 size-4" />
+          Novo lead
         </Button>
       </div>
 
@@ -250,7 +246,7 @@ export function LeadKanban() {
         collisionDetection={closestCorners}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex min-w-0 max-w-full gap-4 overflow-x-auto pb-4">
           {columns.map((column) => (
             <KanbanColumn
               key={column.status}
@@ -266,4 +262,3 @@ export function LeadKanban() {
     </div>
   );
 }
-

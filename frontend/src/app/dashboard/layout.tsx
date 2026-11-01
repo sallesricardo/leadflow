@@ -17,7 +17,7 @@ export default function DashboardLayout({
     <SidebarProvider>
       <AppSidebar />
 
-      <SidebarInset>
+      <SidebarInset className="min-w-0 overflow-x-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger />
@@ -33,7 +33,7 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        <main className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+        <main className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden p-4 md:p-6">
           {children}
         </main>
       </SidebarInset>
