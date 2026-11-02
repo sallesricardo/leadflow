@@ -1,11 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
+  LogOut,
   Users,
-  Settings,
   Zap,
 } from "lucide-react";
 
@@ -35,16 +36,55 @@ const navigation = [
   },
 ];
 
-const secondaryNavigation = [
-  {
-    title: "Configurações",
-    url: "/dashboard/settings",
-    icon: Settings,
-  },
-];
+function SidebarNavigation({ active = true }: { active?: boolean }) {
+  const pathname = usePathname();
+
+  return (
+    <SidebarMenu>
+      {navigation.map((item) => {
+        const isActive =
+          active &&
+          (pathname === item.url || pathname.startsWith(`${item.url}/`));
+
+        return (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton
+              render={<Link href={item.url} />}
+              isActive={isActive}
+              tooltip={item.title}
+            >
+              <item.icon />
+              <span>{item.title}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
+}
+
+function SidebarNavigationFallback() {
+  return (
+    <SidebarMenu>
+      {navigation.map((item) => (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton render={<Link href={item.url} />} tooltip={item.title}>
+            <item.icon />
+            <span>{item.title}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ))}
+    </SidebarMenu>
+  );
+}
 
 export function AppSidebar() {
-  const pathname = usePathname();
+  const router = useRouter();
+
+  function handleLogout() {
+    localStorage.removeItem("leadflow_token");
+    router.replace("/login");
+  }
 
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -76,63 +116,20 @@ export function AppSidebar() {
           </SidebarGroupLabel>
 
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navigation.map((item) => {
-                const active =
-                  pathname === item.url ||
-                  pathname.startsWith(`${item.url}/`);
-
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      render={<Link href={item.url} />}
-                      isActive={active}
-                      tooltip={item.title}
-                    >
-                        <item.icon />
-                        <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
+            <Suspense fallback={<SidebarNavigationFallback />}>
+              <SidebarNavigation />
+            </Suspense>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            Sistema
-          </SidebarGroupLabel>
-
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {secondaryNavigation.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    render={<Link href={item.url} />}
-                    tooltip={item.title}
-                  >
-                      <item.icon />
-                      <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton>
-              <div className="flex size-7 items-center justify-center rounded-full bg-muted">
-                <span className="text-xs font-medium">
-                  RS
-                </span>
-              </div>
-
-              <span>Usuário</span>
+            <SidebarMenuButton onClick={handleLogout} tooltip="Sair">
+              <LogOut />
+              <span>Sair</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

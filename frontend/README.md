@@ -20,8 +20,7 @@ frontend/
 ├── src/
 │   ├── app/
 │   │   ├── login/
-│   │   │   ├── page.tsx
-│   │   │   └── page.module.css
+│   │   │   └── page.tsx
 │   │   │
 │   │   ├── dashboard/
 │   │   │   ├── layout.tsx
@@ -190,7 +189,7 @@ NEGOTIATION
 
 ## Desenvolvimento
 
-O frontend usa Tailwind CSS v4 e componentes shadcn/ui com Base UI. Algumas páginas legadas, como login e detalhes do lead, ainda usam CSS Modules e estão pendentes de revisão/migração.
+O frontend usa Tailwind CSS v4 e componentes shadcn/ui com Base UI. A home redireciona para login, e as telas de login, dashboard e detalhes compartilham o mesmo sistema de estilos.
 
 Os componentes e páginas devem permanecer preferencialmente próximos ao contexto funcional ao qual pertencem.
 

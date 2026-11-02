@@ -33,9 +33,9 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        <main className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden p-4 md:p-6">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-x-hidden p-4 md:p-6">
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

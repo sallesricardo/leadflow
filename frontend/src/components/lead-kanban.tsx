@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
   PointerSensor,
@@ -128,6 +129,7 @@ function KanbanColumn({
 }
 
 export function LeadKanban() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState("ALL");
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -139,33 +141,35 @@ export function LeadKanban() {
     }),
   );
 
-  const loadLeads = useCallback(async () => {
+  useEffect(() => {
     const token = localStorage.getItem("leadflow_token");
 
     if (!token) {
-      window.location.href = "/login";
+      router.replace("/login");
       return;
     }
 
-    try {
-      const data = await apiFetch<Lead[]>("/api/v1/leads", { token });
-      setLeads(data);
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Erro ao carregar os leads.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    let active = true;
 
-  useEffect(() => {
-    loadLeads();
-  }, [loadLeads]);
+    apiFetch<Lead[]>("/api/v1/leads", { token })
+      .then((data) => {
+        if (active) setLeads(data);
+      })
+      .catch((err: Error) => {
+        if (active) toast.error(err.message || "Erro ao carregar os leads.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   const sources = useMemo(() => {
     const values = leads
-      .map((lead) => lead.source)
+      .map((lead) => lead.source?.trim())
       .filter((source): source is string => Boolean(source));
 
     return [...new Set(values)].sort((a, b) => a.localeCompare(b));
@@ -212,7 +216,9 @@ export function LeadKanban() {
       const token = localStorage.getItem("leadflow_token");
 
       if (!token) {
-        throw new Error("Sessão expirada. Faça login novamente.");
+        setLeads(previousLeads);
+        router.replace("/login");
+        return;
       }
 
       await apiFetch<Lead>(`/api/v1/leads/${leadId}`, {
@@ -258,7 +264,7 @@ export function LeadKanban() {
           </p>
         </div>
 
-        <Button render={<Link href="/dashboard/leads/new" />}>
+        <Button nativeButton={false} render={<Link href="/dashboard/leads/new" />}>
           <Plus className="mr-2 size-4" />
           Novo lead
         </Button>
