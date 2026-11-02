@@ -1,6 +1,7 @@
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, String, Text, func, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -44,6 +45,11 @@ class Lead(Base):
         String(30),
         nullable=False,
         default="NEW",
+    )
+
+    value: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        nullable=True
     )
 
     notes: Mapped[str | None] = mapped_column(

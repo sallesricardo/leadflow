@@ -20,6 +20,7 @@ export default function LeadDetailsPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [source, setSource] = useState("");
+  const [value, setValue] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<Lead["status"]>("NEW");
 
@@ -60,6 +61,12 @@ export default function LeadDetailsPage() {
         setEmail(leadData.email ?? "");
         setPhone(leadData.phone ?? "");
         setSource(leadData.source ?? "");
+        setValue(leadData.value ? leadData.value.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+          : "",
+        );
         setNotes(leadData.notes ?? "");
         setStatus(leadData.status);
 
@@ -97,6 +104,7 @@ export default function LeadDetailsPage() {
           email: email || null,
           phone: phone || null,
           source: source || null,
+          value: value.trim() === "" ? null : Number(value.replace(/\./g, "").replace(",", ".")),
           notes: notes || null,
           status,
         }),
@@ -281,6 +289,18 @@ export default function LeadDetailsPage() {
               </label>
 
               <label>
+                Valor da oportunidade
+                <input
+                  id="value"
+                  type="text"
+                  inputMode="decimal"
+                  value={value}
+                  onChange={(event) => setValue(event.target.value)}
+                  placeholder="0,00"
+                />
+              </label>
+
+              <label>
                 Observações
                 <textarea
                   value={notes}
@@ -320,7 +340,10 @@ export default function LeadDetailsPage() {
                 <dt>Origem</dt>
                 <dd>{lead.source || "Não informado"}</dd>
               </div>
-
+              <div>
+                <dt>Valor da oportunidade</dt>
+                <dd>{lead.value || "Não informado"}</dd>
+              </div>
               <div>
                 <dt>Observações</dt>
                 <dd>{lead.notes || "Nenhuma observação."}</dd>
