@@ -21,7 +21,7 @@ O projeto também serve como projeto de portfólio, demonstrando desenvolvimento
 
 ### Backend
 
-- Python 3.11
+- Python 3.13+
 - FastAPI
 - SQLAlchemy
 - Alembic
@@ -35,7 +35,7 @@ O projeto também serve como projeto de portfólio, demonstrando desenvolvimento
 - Next.js
 - React
 - TypeScript
-- CSS Modules
+- shadcn/ui + Tailwind CSS v4
 
 ### Infraestrutura
 
@@ -264,48 +264,31 @@ http://localhost:8000/docs
 - [x] Edição de leads pelo frontend
 - [x] Alteração de status pelo frontend
 - [x] Timeline de atividades
+- [x] Criação de leads
+- [x] Listagem de leads com busca e filtro por status
+- [x] Kanban com alteração de status por arrastar e soltar
 
-### Em desenvolvimento
+### Pendentes
 
+- [ ] Finalizar revisão visual e responsiva da interface
+- [ ] Adicionar testes automatizados de backend e frontend
 - [ ] Dashboard com métricas
-- [ ] Follow-ups
-- [ ] Tarefas
-- [ ] Webhooks
-- [ ] Automações
+- [ ] Follow-ups, tarefas e lembretes
+- [ ] Webhooks e automações
 - [ ] Integração com WhatsApp
-- [ ] Observabilidade
-- [ ] Deploy
+- [ ] Observabilidade e hardening para produção
+- [ ] Deploy e demo online
 
 ## Roadmap
 
-O desenvolvimento está organizado em módulos incrementais:
+M1–M4 (CRUD, autenticação, pipeline e atividades) estão implementados. Os próximos marcos são:
 
 ```text
-M1  Backend + Lead CRUD
- │
- ▼
-M2  Autenticação + isolamento de usuários
- │
- ▼
-M3  Frontend + Dashboard + Kanban
- │
- ▼
-M4  Detalhes + atividades + lifecycle
- │
- ▼
-M5  Dashboard + métricas + testes
- │
- ▼
-M6  Follow-ups + tarefas
- │
- ▼
-M7  Webhooks + automações
- │
- ▼
-M8  Integrações
- │
- ▼
-M9  Observabilidade + deploy
+M4.5  Revisão visual, responsividade e consistência da UI
+M5    Métricas e testes automatizados
+M6    Follow-ups, tarefas e lembretes
+M7    Webhooks, automações e integrações
+M8    Observabilidade, produção e deploy
 ```
 
 ## Licença

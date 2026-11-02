@@ -6,7 +6,7 @@ O backend fornece uma API REST responsável por autenticação, gerenciamento de
 
 ## Stack
 
-- Python 3.11
+- Python 3.13 ou superior (conforme `pyproject.toml`)
 - FastAPI
 - SQLAlchemy
 - Alembic
@@ -67,7 +67,7 @@ cd backend
 Crie o ambiente virtual:
 
 ```bash
-python3.11 -m venv .venv
+python3.13 -m venv .venv
 source .venv/bin/activate
 ```
 
@@ -263,13 +263,7 @@ POST /api/v1/leads/{id}/activities
 
 ## Testes
 
-Os testes automatizados serão mantidos no diretório:
-
-```text
-tests/
-```
-
-Executar:
+Ainda não há testes automatizados no repositório. Quando forem adicionados, execute com:
 
 ```bash
 pytest

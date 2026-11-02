@@ -7,9 +7,11 @@ O frontend fornece a interface para autenticação, visualização do pipeline d
 ## Stack
 
 - Next.js
+- Tailwind CSS v4
+- shadcn/ui com Base UI
 - React
 - TypeScript
-- CSS Modules
+- Lucide React
 
 ## Estrutura
 
@@ -22,12 +24,20 @@ frontend/
 │   │   │   └── page.module.css
 │   │   │
 │   │   ├── dashboard/
+│   │   │   ├── layout.tsx
 │   │   │   ├── page.tsx
-│   │   │   └── page.module.css
+│   │   │   └── leads/
+│   │   │       ├── page.tsx
+│   │   │       ├── new/page.tsx
+│   │   │       └── [id]/page.tsx
 │   │   │
 │   │   ├── page.tsx
 │   │   └── layout.tsx
 │   │
+│   ├── components/
+│   │   ├── ui/
+│   │   ├── app-sidebar.tsx
+│   │   └── lead-kanban.tsx
 │   └── lib/
 │       ├── api.ts
 │       └── types.ts
@@ -163,23 +173,24 @@ NEGOTIATION
 - [x] Kanban de leads
 - [x] Logout
 - [x] Comunicação centralizada com API
+- [x] Listagem de leads com busca e filtro por status
+- [x] Criação de lead com validação e feedback
+- [x] Tela de detalhes e edição de lead
+- [x] Alteração de status e timeline de atividades
+- [x] Kanban com arrastar e soltar
 
-### Em desenvolvimento
+### Pendentes
 
-- [ ] Cadastro de usuário
-- [ ] Criar lead
-- [ ] Editar lead
-- [ ] Tela de detalhes
-- [ ] Alterar status
-- [ ] Timeline de atividades
+- [ ] Interface de cadastro de usuário (a API de registro já existe)
+- [ ] Revisar responsividade, incluindo o uso do Kanban em dispositivos móveis
+- [ ] Finalizar consistência visual entre login, dashboard e detalhes
+- [ ] Adicionar testes automatizados relevantes
 - [ ] Dashboard com métricas
-- [ ] Follow-ups
-- [ ] Tarefas
-- [ ] Responsividade aprimorada
+- [ ] Follow-ups e tarefas
 
 ## Desenvolvimento
 
-O frontend utiliza CSS Modules em vez de um framework de CSS utilitário.
+O frontend usa Tailwind CSS v4 e componentes shadcn/ui com Base UI. Algumas páginas legadas, como login e detalhes do lead, ainda usam CSS Modules e estão pendentes de revisão/migração.
 
 Os componentes e páginas devem permanecer preferencialmente próximos ao contexto funcional ao qual pertencem.
 
