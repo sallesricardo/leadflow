@@ -19,12 +19,15 @@ O frontend fornece a interface para autenticação, visualização do pipeline d
 frontend/
 ├── src/
 │   ├── app/
+│   │   ├── api/
+│   │   │   └── [...path]/route.ts
 │   │   ├── login/
 │   │   │   └── page.tsx
 │   │   │
 │   │   ├── dashboard/
 │   │   │   ├── layout.tsx
 │   │   │   ├── page.tsx
+│   │   │   ├── tasks/page.tsx
 │   │   │   └── leads/
 │   │   │       ├── page.tsx
 │   │   │       ├── new/page.tsx
@@ -67,10 +70,10 @@ npm install
 Crie `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
+BACKEND_API_URL=http://localhost:8000
 ```
 
-A variável define o endereço da API utilizada pelo frontend.
+A variável define o endereço do backend usado exclusivamente pelo servidor Next.js. O navegador chama as rotas BFF do próprio frontend.
 
 ## Desenvolvimento
 
@@ -114,13 +117,11 @@ O frontend realiza login através da API:
 POST /api/v1/auth/login
 ```
 
-Após o login, o JWT é armazenado localmente e enviado nas requisições protegidas através do header:
-
-```http
-Authorization: Bearer <token>
-```
+Após o login, o BFF guarda o JWT em um cookie `HttpOnly`, `Secure` em produção e `SameSite=Strict`. O token não é retornado ao JavaScript do navegador nem armazenado em `localStorage`.
 
 ## Comunicação com a API
+
+O Route Handler `src/app/api/[...path]/route.ts` implementa o BFF: encaminha as rotas `/api/v1/*` ao backend configurado em `BACKEND_API_URL`, controla login/logout e mantém o JWT no cookie de sessão HttpOnly. Requisições que alteram dados também validam a origem.
 
 As requisições são centralizadas em:
 
@@ -131,12 +132,10 @@ src/lib/api.ts
 Exemplo:
 
 ```typescript
-apiFetch<Lead[]>("/api/v1/leads", {
-  token,
-});
+apiFetch<Lead[]>("/api/v1/leads");
 ```
 
-Isso evita duplicação da lógica de comunicação com o backend.
+O BFF encaminha a chamada ao backend e adiciona o JWT da sessão no servidor. Isso centraliza a comunicação com a API e evita expor o token ao navegador.
 
 ## Dashboard
 
@@ -204,5 +203,5 @@ As configurações específicas de produção deverão ser fornecidas através d
 A URL da API deve ser configurada através de:
 
 ```env
-NEXT_PUBLIC_API_URL=<api-url>
+BACKEND_API_URL=<api-url>
 ```

@@ -49,19 +49,11 @@ export default function NewLeadPage() {
       return;
     }
 
-    const token = localStorage.getItem("leadflow_token");
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
     setLoading(true);
 
     try {
       const lead = await apiFetch<Lead>("/api/v1/leads", {
         method: "POST",
-        token,
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim() || null,

@@ -23,6 +23,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { apiFetch } from "@/lib/api";
 
 const navigation = [
   {
@@ -87,9 +88,14 @@ function SidebarNavigationFallback() {
 export function AppSidebar() {
   const router = useRouter();
 
-  function handleLogout() {
-    localStorage.removeItem("leadflow_token");
-    router.replace("/login");
+  async function handleLogout() {
+    try {
+      await apiFetch<{ authenticated: boolean }>("/api/auth/logout", {
+        method: "POST",
+      });
+    } finally {
+      router.replace("/login");
+    }
   }
 
   return (

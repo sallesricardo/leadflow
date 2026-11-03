@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Percent,
   TrendingDown,
@@ -94,22 +93,14 @@ function MetricCard({
 }
 
 export function DashboardMetrics() {
-  const router = useRouter();
   const [metrics, setMetrics] = useState<DashboardMetricsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("leadflow_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
     let active = true;
 
-    apiFetch<DashboardMetricsData>("/api/v1/dashboard/metrics", { token })
+    apiFetch<DashboardMetricsData>("/api/v1/dashboard/metrics")
       .then((data) => {
         if (active) setMetrics(data);
       })
@@ -123,7 +114,7 @@ export function DashboardMetrics() {
     return () => {
       active = false;
     };
-  }, [router]);
+  }, []);
 
   if (loading) {
     return (

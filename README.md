@@ -157,7 +157,7 @@ npm install
 Crie `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
+BACKEND_API_URL=http://localhost:8000
 ```
 
 Execute:
@@ -204,17 +204,19 @@ Login
 POST /api/v1/auth/login
   │
   ▼
-JWT
+Next.js BFF grava JWT em cookie HttpOnly
   │
   ▼
-Frontend
+Chamadas same-origin para /api/v1/*
   │
   ▼
-Authorization: Bearer <token>
+Next.js encaminha Authorization: Bearer <token>
   │
   ▼
-API
+FastAPI
 ```
+
+O navegador não recebe nem armazena o JWT. O endereço do backend é configurado no servidor Next.js através de `BACKEND_API_URL`.
 
 Os dados dos leads são associados ao usuário autenticado, impedindo que um usuário consulte diretamente os leads pertencentes a outro usuário.
 

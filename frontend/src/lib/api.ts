@@ -1,31 +1,31 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+type ApiOptions = RequestInit;
 
-type ApiOptions = RequestInit & {
-  token?: string;
-};
+let legacyTokenCleared = false;
 
 export async function apiFetch<T>(
   path: string,
   options: ApiOptions = {},
 ): Promise<T> {
-  const { token, ...fetchOptions } = options;
-
-  const headers = new Headers(fetchOptions.headers);
-
-  headers.set("Content-Type", "application/json");
-
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+  if (typeof window !== "undefined" && !legacyTokenCleared) {
+    try {
+      localStorage.removeItem("leadflow_token");
+    } catch {
+      // The BFF session does not depend on browser storage.
+    }
+    legacyTokenCleared = true;
   }
 
-  const response = await fetch(
-    `${API_URL}${path}`,
-    {
-      ...fetchOptions,
-      headers,
-    },
-  );
+  const headers = new Headers(options.headers);
+  if (options.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(path, {
+    ...options,
+    headers,
+    credentials: "same-origin",
+    cache: "no-store",
+  });
 
   if (!response.ok) {
     let detail = "Request failed";
@@ -37,8 +37,17 @@ export async function apiFetch<T>(
       // Ignore invalid error responses.
     }
 
+    if (
+      response.status === 401 &&
+      typeof window !== "undefined" &&
+      window.location.pathname !== "/login"
+    ) {
+      window.location.replace("/login");
+    }
+
     throw new Error(detail);
   }
 
+  if (response.status === 204) return undefined as T;
   return response.json();
 }

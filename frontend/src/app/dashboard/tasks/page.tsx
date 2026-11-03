@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CalendarClock, Check, Circle, Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,8 +27,6 @@ function formatDueDate(value: string) {
 }
 
 export default function TasksPage() {
-  const router = useRouter();
-  const tokenRef = useRef("");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,10 +37,10 @@ export default function TasksPage() {
   const [description, setDescription] = useState("");
   const [dueAt, setDueAt] = useState("");
 
-  const refreshData = useCallback(async (authToken: string) => {
+  const refreshData = useCallback(async () => {
     const [taskData, leadData] = await Promise.all([
-      apiFetch<Task[]>("/api/v1/tasks", { token: authToken }),
-      apiFetch<Lead[]>("/api/v1/leads", { token: authToken }),
+      apiFetch<Task[]>("/api/v1/tasks"),
+      apiFetch<Lead[]>("/api/v1/leads"),
     ]);
     const initialDueAt = localDateTimeValue(new Date(Date.now() + 60 * 60 * 1000));
     setTasks(taskData);
@@ -54,15 +51,9 @@ export default function TasksPage() {
   }, []);
 
   useEffect(() => {
-    const authToken = localStorage.getItem("leadflow_token");
-    if (!authToken) {
-      router.replace("/login");
-      return;
-    }
-    tokenRef.current = authToken;
     Promise.all([
-      apiFetch<Task[]>("/api/v1/tasks", { token: authToken }),
-      apiFetch<Lead[]>("/api/v1/leads", { token: authToken }),
+      apiFetch<Task[]>("/api/v1/tasks"),
+      apiFetch<Lead[]>("/api/v1/leads"),
     ])
       .then(([taskData, leadData]) => {
         const initialDueAt = localDateTimeValue(new Date(Date.now() + 60 * 60 * 1000));
@@ -74,7 +65,7 @@ export default function TasksPage() {
       })
       .catch((error: Error) => toast.error(error.message || "Não foi possível carregar as tarefas."))
       .finally(() => setLoading(false));
-  }, [router]);
+  }, []);
 
   async function createTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -83,7 +74,6 @@ export default function TasksPage() {
     try {
       await apiFetch<Task>("/api/v1/tasks", {
         method: "POST",
-        token: tokenRef.current,
         body: JSON.stringify({
           lead_id: Number(leadId),
           title: title.trim(),
@@ -94,7 +84,7 @@ export default function TasksPage() {
       setTitle("");
       setDescription("");
       setDueAt(localDateTimeValue(new Date(Date.now() + 60 * 60 * 1000)));
-      await refreshData(tokenRef.current);
+      await refreshData();
       toast.success("Tarefa criada.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível criar a tarefa.");
@@ -107,7 +97,6 @@ export default function TasksPage() {
     try {
       const updated = await apiFetch<Task>(`/api/v1/tasks/${task.id}`, {
         method: "PATCH",
-        token: tokenRef.current,
         body: JSON.stringify({ completed: !task.completed }),
       });
       setTasks((current) => current.map((item) => item.id === updated.id ? updated : item)

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   DndContext,
   PointerSensor,
@@ -129,7 +128,6 @@ function KanbanColumn({
 }
 
 export function LeadKanban() {
-  const router = useRouter();
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState("ALL");
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -142,16 +140,9 @@ export function LeadKanban() {
   );
 
   useEffect(() => {
-    const token = localStorage.getItem("leadflow_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
     let active = true;
 
-    apiFetch<Lead[]>("/api/v1/leads", { token })
+    apiFetch<Lead[]>("/api/v1/leads")
       .then((data) => {
         if (active) setLeads(data);
       })
@@ -165,7 +156,7 @@ export function LeadKanban() {
     return () => {
       active = false;
     };
-  }, [router]);
+  }, []);
 
   const sources = useMemo(() => {
     const values = leads
@@ -213,17 +204,8 @@ export function LeadKanban() {
     );
 
     try {
-      const token = localStorage.getItem("leadflow_token");
-
-      if (!token) {
-        setLeads(previousLeads);
-        router.replace("/login");
-        return;
-      }
-
       await apiFetch<Lead>(`/api/v1/leads/${leadId}`, {
         method: "PATCH",
-        token,
         body: JSON.stringify({ status: newStatus }),
       });
       toast.success("Lead movido com sucesso.");

@@ -20,11 +20,6 @@ export interface Lead {
   updated_at: string;
 }
 
-export interface LoginResponse {
-  access_token: string;
-  token_type: string;
-}
-
 export type ActivityType =
   | "NOTE"
   | "CALL"

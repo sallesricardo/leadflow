@@ -65,16 +65,9 @@ export default function LeadsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("leadflow_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
     let active = true;
 
-    apiFetch<Lead[]>("/api/v1/leads", { token })
+    apiFetch<Lead[]>("/api/v1/leads")
       .then((data) => {
         if (active) setLeads(data);
       })

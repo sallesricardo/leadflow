@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ArrowLeft, Pencil, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -58,7 +58,6 @@ function formatDate(value: string) {
 
 function LeadDetailsContent() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
   const leadId = params.id;
 
   const [editing, setEditing] = useState(false);
@@ -96,21 +95,13 @@ function LeadDetailsContent() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("leadflow_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    const authToken = token;
     let active = true;
 
     async function loadLead() {
       try {
         const [leadData, activitiesData] = await Promise.all([
-          apiFetch<Lead>(`/api/v1/leads/${leadId}`, { token: authToken }),
-          apiFetch<LeadActivity[]>(`/api/v1/leads/${leadId}/activities`, { token: authToken }),
+          apiFetch<Lead>(`/api/v1/leads/${leadId}`),
+          apiFetch<LeadActivity[]>(`/api/v1/leads/${leadId}/activities`),
         ]);
 
         if (!active) return;
@@ -130,16 +121,10 @@ function LeadDetailsContent() {
     return () => {
       active = false;
     };
-  }, [fillForm, leadId, router]);
+  }, [fillForm, leadId]);
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const token = localStorage.getItem("leadflow_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
 
     const normalizedValue = value.replace(/\./g, "").replace(",", ".").trim();
     const numericValue = normalizedValue === "" ? null : Number(normalizedValue);
@@ -152,7 +137,6 @@ function LeadDetailsContent() {
     try {
       const updatedLead = await apiFetch<Lead>(`/api/v1/leads/${leadId}`, {
         method: "PATCH",
-        token,
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim() || null,
@@ -171,7 +155,7 @@ function LeadDetailsContent() {
 
       try {
         setActivities(
-          await apiFetch<LeadActivity[]>(`/api/v1/leads/${leadId}/activities`, { token }),
+          await apiFetch<LeadActivity[]>(`/api/v1/leads/${leadId}/activities`),
         );
       } catch {
         toast.error("Lead atualizado, mas não foi possível atualizar a timeline.");
@@ -188,17 +172,10 @@ function LeadDetailsContent() {
     const content = activityContent.trim();
     if (!content) return;
 
-    const token = localStorage.getItem("leadflow_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
     setCreatingActivity(true);
     try {
       const activity = await apiFetch<LeadActivity>(`/api/v1/leads/${leadId}/activities`, {
         method: "POST",
-        token,
         body: JSON.stringify({ type: activityType, content }),
       });
       setActivities((current) => [activity, ...current]);

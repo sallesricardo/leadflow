@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Zap } from "lucide-react";
 
 import { apiFetch } from "@/lib/api";
-import type { LoginResponse } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,11 +29,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await apiFetch<LoginResponse>("/api/v1/auth/login", {
+      await apiFetch<{ authenticated: boolean }>("/api/v1/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-      localStorage.setItem("leadflow_token", response.access_token);
       router.replace("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível fazer login.");
