@@ -169,7 +169,7 @@ export function LeadKanban() {
 
   const sources = useMemo(() => {
     const values = leads
-      .map((lead) => lead.source?.trim())
+      .map((lead) => lead.source?.trim().toLowerCase())
       .filter((source): source is string => Boolean(source));
 
     return [...new Set(values)].sort((a, b) => a.localeCompare(b));

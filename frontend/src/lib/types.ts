@@ -40,3 +40,14 @@ export interface LeadActivity {
   content: string | null;
   created_at: string;
 }
+
+export interface Task {
+  id: number;
+  lead_id: number;
+  lead_name: string;
+  title: string;
+  description: string | null;
+  due_at: string;
+  completed: boolean;
+  created_at: string;
+}

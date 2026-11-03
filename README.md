@@ -234,6 +234,12 @@ PATCH  /api/v1/leads/{id}
 GET    /api/v1/leads/{id}/activities
 POST   /api/v1/leads/{id}/activities
 
+GET    /api/v1/dashboard/metrics
+
+GET    /api/v1/tasks
+POST   /api/v1/tasks
+PATCH  /api/v1/tasks/{id}
+
 GET    /health
 ```
 
@@ -270,10 +276,10 @@ http://localhost:8000/docs
 
 ### Pendentes
 
-- [ ] Finalizar revisão visual e responsiva da interface
+- [x] Finalizar revisão visual e responsiva da interface
 - [ ] Adicionar testes automatizados de backend e frontend
-- [ ] Dashboard com métricas
-- [ ] Follow-ups, tarefas e lembretes
+- [x] Dashboard com métricas de leads, etapas, conversão, valores e origens
+- [x] Tarefas vinculadas a leads, com prazo e conclusão
 - [ ] Webhooks e automações
 - [ ] Integração com WhatsApp
 - [ ] Observabilidade e hardening para produção
@@ -281,12 +287,12 @@ http://localhost:8000/docs
 
 ## Roadmap
 
-M1–M4 (CRUD, autenticação, pipeline e atividades) estão implementados. Os próximos marcos são:
+M1–M6 (CRUD, autenticação, pipeline, atividades, métricas e tarefas) estão implementados. Os próximos marcos são:
 
 ```text
-M4.5  Revisão visual, responsividade e consistência da UI
-M5    Métricas e testes automatizados
-M6    Follow-ups, tarefas e lembretes
+M4.5  Revisão visual, responsividade e consistência da UI (concluído)
+M5    Métricas implementadas; testes automatizados pendentes
+M6    Tarefas vinculadas a leads, prazos e conclusão (implementado)
 M7    Webhooks, automações e integrações
 M8    Observabilidade, produção e deploy
 ```

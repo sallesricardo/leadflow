@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LogOut,
   Users,
+  ListTodo,
   Zap,
 } from "lucide-react";
 
@@ -33,6 +34,11 @@ const navigation = [
     title: "Leads",
     url: "/dashboard/leads",
     icon: Users,
+  },
+  {
+    title: "Tarefas",
+    url: "/dashboard/tasks",
+    icon: ListTodo,
   },
 ];
 

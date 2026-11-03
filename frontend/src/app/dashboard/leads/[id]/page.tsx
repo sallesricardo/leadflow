@@ -103,13 +103,14 @@ function LeadDetailsContent() {
       return;
     }
 
+    const authToken = token;
     let active = true;
 
     async function loadLead() {
       try {
         const [leadData, activitiesData] = await Promise.all([
-          apiFetch<Lead>(`/api/v1/leads/${leadId}`, { token }),
-          apiFetch<LeadActivity[]>(`/api/v1/leads/${leadId}/activities`, { token }),
+          apiFetch<Lead>(`/api/v1/leads/${leadId}`, { token: authToken }),
+          apiFetch<LeadActivity[]>(`/api/v1/leads/${leadId}/activities`, { token: authToken }),
         ]);
 
         if (!active) return;

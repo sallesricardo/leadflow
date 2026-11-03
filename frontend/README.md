@@ -181,11 +181,11 @@ NEGOTIATION
 ### Pendentes
 
 - [ ] Interface de cadastro de usuário (a API de registro já existe)
-- [ ] Revisar responsividade, incluindo o uso do Kanban em dispositivos móveis
-- [ ] Finalizar consistência visual entre login, dashboard e detalhes
+- [x] Revisar responsividade, incluindo o uso do Kanban em dispositivos móveis
+- [x] Finalizar consistência visual entre login, dashboard e detalhes
 - [ ] Adicionar testes automatizados relevantes
-- [ ] Dashboard com métricas
-- [ ] Follow-ups e tarefas
+- [x] Dashboard com métricas de etapas, conversão, valores e origens
+- [x] Tarefas e lembretes vinculados a leads
 
 ## Desenvolvimento
 

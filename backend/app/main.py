@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
+from app.api.dashboard import router as dashboard_router
 from app.api.leads import router as leads_router
+from app.api.tasks import router as tasks_router
 
 
 app = FastAPI(
@@ -27,6 +29,16 @@ app.include_router(
 
 app.include_router(
     leads_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    dashboard_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    tasks_router,
     prefix="/api/v1",
 )
 

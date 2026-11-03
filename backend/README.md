@@ -4,6 +4,8 @@ Backend da aplicação LeadFlow.
 
 O backend fornece uma API REST responsável por autenticação, gerenciamento de leads, persistência dos dados e histórico de atividades.
 
+O endpoint `GET /api/v1/tasks` lista as tarefas do usuário autenticado. Tarefas são criadas em `POST /api/v1/tasks` (associadas a um lead) e atualizadas em `PATCH /api/v1/tasks/{id}`. Cada tarefa tem título, descrição opcional, prazo e estado de conclusão.
+
 ## Stack
 
 - Python 3.13 ou superior (conforme `pyproject.toml`)
@@ -259,7 +261,21 @@ Endpoints:
 ```text
 GET  /api/v1/leads/{id}/activities
 POST /api/v1/leads/{id}/activities
+
+GET  /api/v1/dashboard/metrics
+
+GET   /api/v1/tasks
+POST  /api/v1/tasks
+PATCH /api/v1/tasks/{id}
 ```
+
+## Métricas do dashboard
+
+`GET /api/v1/dashboard/metrics` retorna, para o usuário autenticado, o total de leads, a contagem por etapa, a taxa de conversão entre ganhos e leads concluídos, os valores ganhos/perdidos e o desempenho por origem.
+
+## Tarefas e lembretes
+
+As tarefas pertencem ao usuário autenticado e ficam associadas a um lead desse usuário. Cada tarefa inclui título, observações opcionais, prazo e estado de conclusão. Tarefas vencidas aparecem destacadas na interface.
 
 ## Testes
 
