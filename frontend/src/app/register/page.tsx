@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { Zap } from "lucide-react";
 
 import { apiFetch } from "@/lib/api";
+import {
+  normalizeRegistrationEmail,
+  validateRegistration,
+} from "@/lib/registration-validation.mjs";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,13 +36,14 @@ export default function RegisterPage() {
     setError("");
     setSuccess("");
 
-    if (password !== passwordConfirmation) {
-      setError("As senhas não coincidem.");
+    const validationError = validateRegistration(email, password, passwordConfirmation);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     setLoading(true);
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = normalizeRegistrationEmail(email);
 
     try {
       await apiFetch<{ id: number; email: string }>("/api/v1/auth/register", {

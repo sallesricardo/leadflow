@@ -111,6 +111,14 @@ npm start
 npm run lint
 ```
 
+## Testes
+
+Execute os testes unitários das regras de validação do cadastro com o runner nativo do Node.js:
+
+```bash
+npm test
+```
+
 ## Autenticação
 
 O frontend realiza login através da API:

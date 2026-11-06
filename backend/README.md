@@ -161,6 +161,16 @@ Health check:
 GET /health
 ```
 
+## Testes
+
+Com o ambiente virtual ativado, execute a suíte de testes:
+
+```bash
+pytest
+```
+
+Os testes atuais cobrem hashing/verificação de senha e criação, leitura e rejeição de tokens JWT inválidos.
+
 ## Autenticação
 
 O backend utiliza JWT para autenticação.

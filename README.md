@@ -178,6 +178,22 @@ O ambiente de desenvolvimento utiliza PostgreSQL executado através do Docker Co
 
 As alterações de estrutura do banco são controladas pelo Alembic.
 
+## Testes e validação
+
+Backend (a partir de `backend/`):
+
+```bash
+pytest
+```
+
+Frontend (a partir de `frontend/`):
+
+```bash
+npm test
+npm run lint
+npx tsc --noEmit
+```
+
 Para aplicar as migrations:
 
 ```bash
