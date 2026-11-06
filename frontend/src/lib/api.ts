@@ -40,7 +40,7 @@ export async function apiFetch<T>(
     if (
       response.status === 401 &&
       typeof window !== "undefined" &&
-      window.location.pathname !== "/login"
+      !["/login", "/register"].includes(window.location.pathname)
     ) {
       window.location.replace("/login");
     }

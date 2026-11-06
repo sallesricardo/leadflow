@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Zap } from "lucide-react";
 
@@ -10,6 +11,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -89,6 +91,12 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
+        <CardFooter className="justify-center gap-1 border-t bg-transparent text-sm">
+          <span className="text-muted-foreground">Ainda não tem uma conta?</span>
+          <Link href="/register" className="font-medium text-primary hover:underline">
+            Cadastre-se
+          </Link>
+        </CardFooter>
       </Card>
     </main>
   );

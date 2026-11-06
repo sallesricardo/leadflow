@@ -261,6 +261,7 @@ http://localhost:8000/docs
 - [x] Alembic
 - [x] CRUD básico de leads
 - [x] Cadastro de usuários
+- [x] Interface de cadastro com sessão criada pelo BFF
 - [x] Login
 - [x] JWT
 - [x] Isolamento de leads por usuário

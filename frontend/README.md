@@ -23,6 +23,8 @@ frontend/
 │   │   │   └── [...path]/route.ts
 │   │   ├── login/
 │   │   │   └── page.tsx
+│   │   ├── register/
+│   │   │   └── page.tsx
 │   │   │
 │   │   ├── dashboard/
 │   │   │   ├── layout.tsx
@@ -166,6 +168,7 @@ NEGOTIATION
 ### Implementadas
 
 - [x] Página de login
+- [x] Cadastro de usuário com login automático pelo BFF
 - [x] Autenticação com API
 - [x] Dashboard
 - [x] Kanban de leads
@@ -179,7 +182,7 @@ NEGOTIATION
 
 ### Pendentes
 
-- [ ] Interface de cadastro de usuário (a API de registro já existe)
+- [x] Interface de cadastro de usuário integrada à API de registro
 - [x] Revisar responsividade, incluindo o uso do Kanban em dispositivos móveis
 - [x] Finalizar consistência visual entre login, dashboard e detalhes
 - [ ] Adicionar testes automatizados relevantes
