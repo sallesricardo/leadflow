@@ -10,6 +10,7 @@ import type { Task } from "@/lib/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -100,37 +101,38 @@ export function TaskNotifications() {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-2rem)]">
-        <DropdownMenuLabel className="px-3 py-2 text-sm">Prazos próximos</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {loading ? (
-          <p className="px-3 py-4 text-sm text-muted-foreground">Carregando lembretes…</p>
-        ) : failed ? (
-          <p className="px-3 py-4 text-sm text-muted-foreground">Não foi possível carregar os lembretes.</p>
-        ) : reminders.length === 0 ? (
-          <p className="px-3 py-4 text-sm text-muted-foreground">Nenhuma tarefa atrasada ou para as próximas 24 horas.</p>
-        ) : (
-          <>
-            {reminders.slice(0, 5).map((task) => {
-              const overdue = Date.parse(task.due_at) <= now;
-              return (
-                <DropdownMenuItem
-                  key={task.id}
-                  render={<Link href="/dashboard/tasks" />}
-                  className="items-start whitespace-normal px-3 py-2.5"
-                >
-                  <CalendarClock className={`mt-0.5 size-4 ${overdue ? "text-destructive" : "text-muted-foreground"}`} />
-                  <span className="grid min-w-0 gap-0.5">
-                    <span className="truncate font-medium">{task.title}</span>
-                    <span className="truncate text-xs text-muted-foreground">{task.lead_name} · {formatReminder(task, now)}</span>
-                  </span>
-                </DropdownMenuItem>
-              );
-            })}
-            {reminders.length > 5 && (
-              <p className="px-3 py-2 text-xs text-muted-foreground">E mais {reminders.length - 5} tarefa(s).</p>
-            )}
-          </>
-        )}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="px-3 py-2 text-sm">Prazos próximos</DropdownMenuLabel>
+          {loading ? (
+            <p className="px-3 py-4 text-sm text-muted-foreground">Carregando lembretes…</p>
+          ) : failed ? (
+            <p className="px-3 py-4 text-sm text-muted-foreground">Não foi possível carregar os lembretes.</p>
+          ) : reminders.length === 0 ? (
+            <p className="px-3 py-4 text-sm text-muted-foreground">Nenhuma tarefa atrasada ou para as próximas 24 horas.</p>
+          ) : (
+            <>
+              {reminders.slice(0, 5).map((task) => {
+                const overdue = Date.parse(task.due_at) <= now;
+                return (
+                  <DropdownMenuItem
+                    key={task.id}
+                    render={<Link href="/dashboard/tasks" />}
+                    className="items-start whitespace-normal px-3 py-2.5"
+                  >
+                    <CalendarClock className={`mt-0.5 size-4 ${overdue ? "text-destructive" : "text-muted-foreground"}`} />
+                    <span className="grid min-w-0 gap-0.5">
+                      <span className="truncate font-medium">{task.title}</span>
+                      <span className="truncate text-xs text-muted-foreground">{task.lead_name} · {formatReminder(task, now)}</span>
+                    </span>
+                  </DropdownMenuItem>
+                );
+              })}
+              {reminders.length > 5 && (
+                <p className="px-3 py-2 text-xs text-muted-foreground">E mais {reminders.length - 5} tarefa(s).</p>
+              )}
+            </>
+          )}
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/dashboard/tasks" />} className="justify-center py-2 font-medium text-primary">
           Ver todas as tarefas
