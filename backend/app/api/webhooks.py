@@ -11,6 +11,7 @@ from app.schemas.webhook import (
     WebhookCreated,
     WebhookDeliveryResponse,
     WebhookResponse,
+    WebhookUpdate,
 )
 from app.services import webhook_service
 
@@ -63,6 +64,24 @@ def delete_webhook(
     webhook_service.delete_endpoint(db, endpoint)
 
 
+@router.patch("/{endpoint_id}", response_model=WebhookResponse)
+def update_webhook(
+    endpoint_id: int,
+    payload: WebhookUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    endpoint = db.scalar(
+        select(WebhookEndpoint).where(
+            WebhookEndpoint.id == endpoint_id,
+            WebhookEndpoint.user_id == current_user.id,
+        )
+    )
+    if endpoint is None:
+        raise HTTPException(status_code=404, detail="Webhook not found")
+    return webhook_service.set_endpoint_enabled(db, endpoint, payload.enabled)
+
+
 @router.get(
     "/{endpoint_id}/deliveries",
     response_model=list[WebhookDeliveryResponse],
@@ -86,3 +105,39 @@ def list_deliveries(
         .order_by(WebhookDelivery.created_at.desc())
         .limit(100)
     ).all()
+
+
+@router.post(
+    "/{endpoint_id}/deliveries/{delivery_id}/retry",
+    response_model=WebhookDeliveryResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def retry_webhook_delivery(
+    endpoint_id: int,
+    delivery_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    endpoint = db.scalar(
+        select(WebhookEndpoint).where(
+            WebhookEndpoint.id == endpoint_id,
+            WebhookEndpoint.user_id == current_user.id,
+        )
+    )
+    if endpoint is None:
+        raise HTTPException(status_code=404, detail="Webhook not found")
+
+    delivery = db.scalar(
+        select(WebhookDelivery).where(
+            WebhookDelivery.id == delivery_id,
+            WebhookDelivery.endpoint_id == endpoint.id,
+        )
+    )
+    if delivery is None:
+        raise HTTPException(status_code=404, detail="Webhook delivery not found")
+    if delivery.status != "failed":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only failed deliveries can be retried",
+        )
+    return webhook_service.retry_delivery(db, delivery)

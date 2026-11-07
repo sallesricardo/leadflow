@@ -106,10 +106,16 @@ def process_one() -> bool:
         if delivery is None:
             return False
 
+        endpoint = db.get(WebhookEndpoint, delivery.endpoint_id)
+        if endpoint is not None and not endpoint.enabled:
+            delivery.status = "pending"
+            delivery.available_at = now + timedelta(minutes=1)
+            db.commit()
+            return True
+
         delivery.status = "processing"
         delivery.attempt_count += 1
         delivery.available_at = now + DELIVERY_LEASE
-        endpoint = db.get(WebhookEndpoint, delivery.endpoint_id)
         db.commit()
 
         if endpoint is None or not endpoint.enabled:

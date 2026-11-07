@@ -316,7 +316,7 @@ As tarefas pertencem ao usuário autenticado e ficam associadas a um lead desse 
 
 ## Webhooks
 
-Usuários autenticados podem cadastrar destinos HTTPS em `POST /api/v1/webhooks`, listar em `GET /api/v1/webhooks`, consultar as últimas entregas em `GET /api/v1/webhooks/{id}/deliveries` e remover destinos em `DELETE /api/v1/webhooks/{id}`. Cada destino escolhe eventos `lead.created`, `lead.updated` e `lead.status_changed`. O segredo de assinatura é retornado apenas na criação; o receptor valida `X-LeadFlow-Signature` como HMAC-SHA256 do corpo bruto. Os payloads contêm dados do lead, incluindo e-mail, telefone e observações.
+Usuários autenticados podem cadastrar destinos HTTPS em `POST /api/v1/webhooks`, listar em `GET /api/v1/webhooks`, pausar/reativar em `PATCH /api/v1/webhooks/{id}`, consultar as últimas entregas em `GET /api/v1/webhooks/{id}/deliveries`, reenfileirar entregas falhas em `POST /api/v1/webhooks/{id}/deliveries/{delivery_id}/retry` e remover destinos em `DELETE /api/v1/webhooks/{id}`. Cada destino escolhe eventos `lead.created`, `lead.updated` e `lead.status_changed`. O segredo de assinatura é retornado apenas na criação; o receptor valida `X-LeadFlow-Signature` como HMAC-SHA256 do corpo bruto. Os payloads contêm dados do lead, incluindo e-mail, telefone e observações.
 
 As entregas ficam numa fila persistida no banco e usam retentativas com espera crescente. Com Docker Compose, o serviço `webhook-worker` processa a fila automaticamente. Para execução direta no host, rode em outro terminal dentro de `backend/`:
 

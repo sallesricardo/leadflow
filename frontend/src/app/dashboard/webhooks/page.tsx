@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { Check, Copy, Plus, RefreshCw, Trash2, Webhook as WebhookIcon } from "lucide-react";
+import { Check, Copy, Pause, Play, Plus, RefreshCw, RotateCcw, Trash2, Webhook as WebhookIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { apiFetch } from "@/lib/api";
@@ -53,6 +53,8 @@ export default function WebhooksPage() {
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [retryingId, setRetryingId] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -146,6 +148,38 @@ export default function WebhooksPage() {
       toast.error(error instanceof Error ? error.message : "Não foi possível remover o webhook.");
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function toggleWebhook(endpoint: WebhookEndpoint) {
+    setUpdatingId(endpoint.id);
+    try {
+      const updated = await apiFetch<WebhookEndpoint>(`/api/v1/webhooks/${endpoint.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ enabled: !endpoint.enabled }),
+      });
+      setEndpoints((current) => current.map((item) => item.id === updated.id ? updated : item));
+      toast.success(updated.enabled ? "Webhook reativado." : "Webhook pausado.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o webhook.");
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function retryDelivery(endpointId: number, deliveryId: number) {
+    setRetryingId(deliveryId);
+    try {
+      const updated = await apiFetch<WebhookDelivery>(
+        `/api/v1/webhooks/${endpointId}/deliveries/${deliveryId}/retry`,
+        { method: "POST" },
+      );
+      setDeliveries((current) => current.map((item) => item.id === updated.id ? updated : item));
+      toast.success("Entrega reenfileirada.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível reenviar a entrega.");
+    } finally {
+      setRetryingId(null);
     }
   }
 
@@ -247,9 +281,15 @@ export default function WebhooksPage() {
                           <span className="block break-all text-sm font-medium">{endpoint.url}</span>
                           <span className="mt-1 block text-xs text-muted-foreground">Adicionado em {formatDate(endpoint.created_at)}</span>
                         </button>
-                        <Button type="button" variant="ghost" size="icon" aria-label="Remover webhook" disabled={deletingId === endpoint.id} onClick={() => void deleteWebhook(endpoint)}>
-                          <Trash2 className="text-destructive" />
-                        </Button>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <Badge variant={endpoint.enabled ? "secondary" : "outline"}>{endpoint.enabled ? "Ativo" : "Pausado"}</Badge>
+                          <Button type="button" variant="ghost" size="icon" aria-label={endpoint.enabled ? "Pausar webhook" : "Reativar webhook"} disabled={updatingId === endpoint.id} onClick={() => void toggleWebhook(endpoint)}>
+                            {endpoint.enabled ? <Pause /> : <Play />}
+                          </Button>
+                          <Button type="button" variant="ghost" size="icon" aria-label="Remover webhook" disabled={deletingId === endpoint.id} onClick={() => void deleteWebhook(endpoint)}>
+                            <Trash2 className="text-destructive" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {endpoint.events.map((event) => <Badge key={event} variant="outline">{eventLabel(event)}</Badge>)}
@@ -294,6 +334,11 @@ export default function WebhooksPage() {
                         </div>
                         <p className="text-xs text-muted-foreground">{formatDate(delivery.created_at)} · tentativa {delivery.attempt_count}{delivery.last_status_code ? ` · HTTP ${delivery.last_status_code}` : ""}</p>
                         {delivery.last_error && <p className="break-words text-xs text-destructive">{delivery.last_error}</p>}
+                        {delivery.status === "failed" && (
+                          <Button type="button" variant="outline" size="sm" disabled={!selectedEndpoint?.enabled || retryingId === delivery.id} onClick={() => void retryDelivery(deliveriesEndpointId!, delivery.id)}>
+                            <RotateCcw /> {retryingId === delivery.id ? "Reenfileirando…" : "Reenviar"}
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   </li>

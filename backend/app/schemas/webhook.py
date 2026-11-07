@@ -18,6 +18,10 @@ class WebhookCreate(BaseModel):
         return value
 
 
+class WebhookUpdate(BaseModel):
+    enabled: bool
+
+
 class WebhookResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

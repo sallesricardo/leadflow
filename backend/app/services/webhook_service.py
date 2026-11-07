@@ -81,3 +81,26 @@ def enqueue_lead_event(
 def delete_endpoint(db: Session, endpoint: WebhookEndpoint) -> None:
     db.delete(endpoint)
     db.commit()
+
+
+def set_endpoint_enabled(
+    db: Session,
+    endpoint: WebhookEndpoint,
+    enabled: bool,
+) -> WebhookEndpoint:
+    endpoint.enabled = enabled
+    db.commit()
+    db.refresh(endpoint)
+    return endpoint
+
+
+def retry_delivery(db: Session, delivery: WebhookDelivery) -> WebhookDelivery:
+    delivery.status = "pending"
+    delivery.attempt_count = 0
+    delivery.available_at = datetime.now(UTC)
+    delivery.last_status_code = None
+    delivery.last_error = None
+    delivery.delivered_at = None
+    db.commit()
+    db.refresh(delivery)
+    return delivery
