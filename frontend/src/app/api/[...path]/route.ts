@@ -55,10 +55,13 @@ async function handleRequest(request: Request, context: RouteContext) {
     return Response.json({ detail: "Authentication required" }, { status: 401 });
   }
 
-  const backendBaseUrl =
-    process.env.BACKEND_API_URL ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:8000";
+  const backendBaseUrl = process.env.BACKEND_API_URL;
+  if (!backendBaseUrl) {
+    return Response.json(
+      { detail: "Backend não configurado" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 
   try {
     const backendUrl = new URL(backendBaseUrl);

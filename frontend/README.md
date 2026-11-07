@@ -219,3 +219,5 @@ A URL da API deve ser configurada através de:
 ```env
 BACKEND_API_URL=<api-url>
 ```
+
+Essa variável é lida somente no servidor pelo BFF. Sem ela, as rotas BFF retornam `503` em vez de tentar encaminhar chamadas para um endereço padrão.
