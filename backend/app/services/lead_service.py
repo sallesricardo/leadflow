@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.lead import Lead
 from app.models.lead_activity import LeadActivity
 from app.repositories import lead_activity as activity_repository
+from app.services.webhook_service import enqueue_lead_event
 
 
 def update_lead(
@@ -33,6 +34,15 @@ def update_lead(
         )
 
         activity_repository.create(db, activity)
+
+    if changes:
+        db.flush()
+        enqueue_lead_event(
+            db,
+            user_id=user_id,
+            event_type="lead.status_changed" if old_status != new_status else "lead.updated",
+            lead=lead,
+        )
 
     db.commit()
     db.refresh(lead)

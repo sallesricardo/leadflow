@@ -304,16 +304,19 @@ http://localhost:8000/docs
 - [x] Listagem de leads com busca e filtro por status
 - [x] Kanban com alteração de status por arrastar e soltar
 
-### Pendentes
+### Concluídas
 
 - [x] Finalizar revisão visual e responsiva da interface
-- [ ] Adicionar testes automatizados de backend e frontend
+- [x] Adicionar testes automatizados de backend e frontend
 - [x] Dashboard com métricas de leads, etapas, conversão, valores e origens
 - [x] Tarefas vinculadas a leads, com prazo e conclusão
-- [ ] Webhooks e automações
+
+### Ainda pendentes
+
+- [ ] Webhooks e automações (API inicial de webhooks implementada; interface e automações ainda pendentes)
 - [ ] Integração com WhatsApp
 - [ ] Observabilidade e hardening para produção
-- [ ] Deploy e demo online
+- [ ] Deploy e demo online (infra preparada; domínio, zona Cloudflare e provisionamento ainda pendentes)
 
 ## Roadmap
 
@@ -321,11 +324,13 @@ M1–M6 (CRUD, autenticação, pipeline, atividades, métricas e tarefas) estão
 
 ```text
 M4.5  Revisão visual, responsividade e consistência da UI (concluído)
-M5    Métricas implementadas; testes automatizados pendentes
+M5    Métricas e testes automatizados implementados
 M6    Tarefas vinculadas a leads, prazos e conclusão (implementado)
-M7    Webhooks, automações e integrações
+M7    Webhooks, automações e integrações (em andamento: primeira fatia de webhooks no backend)
 M8    Observabilidade, produção e deploy
 ```
+
+Testes automatizados existentes: backend com `docker compose --profile test run --build --rm test` e frontend com `cd frontend && npm test`. As duas suítes já foram executadas com sucesso.
 
 ## Licença
 

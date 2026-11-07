@@ -2,10 +2,18 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.lead import Lead
+from app.services.webhook_service import enqueue_lead_event
 
 
 def create(db: Session, lead: Lead) -> Lead:
     db.add(lead)
+    db.flush()
+    enqueue_lead_event(
+        db,
+        user_id=lead.user_id,
+        event_type="lead.created",
+        lead=lead,
+    )
     db.commit()
     db.refresh(lead)
 

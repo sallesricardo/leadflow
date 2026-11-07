@@ -189,7 +189,7 @@ NEGOTIATION
 - [x] Kanban com arrastar e soltar
 - [x] Lembretes internos no cabeçalho para tarefas atrasadas ou vencendo nas próximas 24 horas; atualizam a cada minuto e ao retornar à aba
 
-### Pendentes
+### Entregas concluídas
 
 - [x] Interface de cadastro de usuário integrada à API de registro
 - [x] Revisar responsividade, incluindo o uso do Kanban em dispositivos móveis
@@ -214,12 +214,12 @@ Tipos compartilhados entre as páginas devem ser definidos em `src/lib/types.ts`
 
 As configurações específicas de produção deverão ser fornecidas através de variáveis de ambiente.
 
-A URL da API deve ser configurada através de:
+No desenvolvimento local, a URL da API deve ser configurada através de:
 
 ```env
 BACKEND_API_URL=<api-url>
 ```
 
-Essa variável é lida somente no servidor pelo BFF. Sem ela, as rotas BFF retornam `503` em vez de tentar encaminhar chamadas para um endereço padrão.
+Essa variável é lida somente no servidor pelo BFF. No Render, o serviço usa `BACKEND_API_HOSTPORT` para encaminhar pela rede privada. Sem qualquer uma das duas variáveis, as rotas BFF retornam `503` em vez de tentar encaminhar chamadas para um endereço padrão.
 
-O Next aplica uma CSP base para restringir fontes e bloquear objetos e framing. A política permite scripts e estilos inline para manter compatibilidade com o Next e o partial prefetching atual; uma CSP estrita com nonce exige renderização dinâmica e uma revisão do partial prefetching antes de ser ativada.
+O Next aplica uma CSP base para restringir fontes e bloquear objetos e framing. A política atual permite scripts e estilos inline para preservar a pré-renderização. A CSP com nonce do Next exige renderização dinâmica e é incompatível com PPR; neste projeto, o build pré-renderiza login, cadastro e dashboard e usa PPR nos detalhes do lead. A interface também tem atributos `style` dinâmicos em componentes como Kanban, métricas e sidebar. Por isso, a decisão atual é manter a CSP base até haver uma decisão explícita de trocar o ganho de segurança por renderização dinâmica e revisar a política de estilos. Consulte a [documentação de CSP do Next.js](https://nextjs.org/docs/app/guides/content-security-policy) antes de retomar essa mudança.

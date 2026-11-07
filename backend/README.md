@@ -314,13 +314,27 @@ PATCH /api/v1/tasks/{id}
 
 As tarefas pertencem ao usuário autenticado e ficam associadas a um lead desse usuário. Cada tarefa inclui título, observações opcionais, prazo e estado de conclusão. Tarefas vencidas aparecem destacadas na interface.
 
-## Testes
+## Webhooks
 
-Ainda não há testes automatizados no repositório. Quando forem adicionados, execute com:
+Usuários autenticados podem cadastrar destinos HTTPS em `POST /api/v1/webhooks`, listar em `GET /api/v1/webhooks`, consultar as últimas entregas em `GET /api/v1/webhooks/{id}/deliveries` e remover destinos em `DELETE /api/v1/webhooks/{id}`. Cada destino escolhe eventos `lead.created`, `lead.updated` e `lead.status_changed`. O segredo de assinatura é retornado apenas na criação; o receptor valida `X-LeadFlow-Signature` como HMAC-SHA256 do corpo bruto. Os payloads contêm dados do lead, incluindo e-mail, telefone e observações.
+
+As entregas ficam numa fila persistida no banco e usam retentativas com espera crescente. Para processá-las em desenvolvimento, rode em outro terminal dentro de `backend/`:
 
 ```bash
-pytest
+python -m app.webhooks.worker
 ```
+
+O worker aceita apenas destinos HTTPS que resolvam para endereços IP públicos e não segue redirecionamentos. A execução contínua do worker deve ser configurada no ambiente onde a API for executada.
+
+## Testes
+
+Os testes automatizados usam SQLite em memória e não precisam iniciar o PostgreSQL. Na raiz do repositório, execute:
+
+```bash
+docker compose --profile test run --build --rm test
+```
+
+Também é possível instalar as dependências de teste e rodar `pytest` dentro do ambiente virtual do backend.
 
 ## Princípios
 
