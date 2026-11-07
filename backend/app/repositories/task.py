@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.models.lead import Lead
 from app.models.task import Task
+from app.services.webhook_service import enqueue_task_event
 
 
 def list_by_user(db: Session, user_id: int) -> list[tuple[Task, str]]:
@@ -23,14 +24,31 @@ def get_by_id(db: Session, task_id: int, user_id: int) -> Task | None:
 
 def create(db: Session, task: Task) -> Task:
     db.add(task)
+    db.flush()
+    db.refresh(task)
+    enqueue_task_event(
+        db,
+        user_id=task.user_id,
+        event_type="task.created",
+        task=task,
+    )
     db.commit()
     db.refresh(task)
     return task
 
 
 def update(db: Session, task: Task, changes: dict) -> Task:
+    was_completed = task.completed
     for key, value in changes.items():
         setattr(task, key, value)
+    db.flush()
+    if "completed" in changes and was_completed != task.completed:
+        enqueue_task_event(
+            db,
+            user_id=task.user_id,
+            event_type="task.completed" if task.completed else "task.reopened",
+            task=task,
+        )
     db.commit()
     db.refresh(task)
     return task

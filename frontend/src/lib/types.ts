@@ -47,7 +47,13 @@ export interface Task {
   created_at: string;
 }
 
-export type WebhookEvent = "lead.created" | "lead.updated" | "lead.status_changed";
+export type WebhookEvent =
+  | "lead.created"
+  | "lead.updated"
+  | "lead.status_changed"
+  | "task.created"
+  | "task.completed"
+  | "task.reopened";
 
 export interface WebhookEndpoint {
   id: number;

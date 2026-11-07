@@ -21,6 +21,9 @@ const EVENT_OPTIONS: { value: WebhookEvent; label: string; description: string }
   { value: "lead.created", label: "Lead criado", description: "Quando um lead é cadastrado." },
   { value: "lead.updated", label: "Lead atualizado", description: "Quando dados do lead são alterados." },
   { value: "lead.status_changed", label: "Etapa alterada", description: "Quando o lead muda de etapa." },
+  { value: "task.created", label: "Tarefa criada", description: "Quando uma tarefa é adicionada a um lead." },
+  { value: "task.completed", label: "Tarefa concluída", description: "Quando uma tarefa é marcada como concluída." },
+  { value: "task.reopened", label: "Tarefa reaberta", description: "Quando uma tarefa concluída volta a ficar aberta." },
 ];
 
 function eventLabel(event: WebhookEvent) {

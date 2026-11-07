@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.lead import Lead
+from app.models.task import Task
 from app.models.webhook import WebhookDelivery, WebhookEndpoint
 
 
@@ -29,12 +30,12 @@ def create_endpoint(
     return endpoint, secret
 
 
-def enqueue_lead_event(
+def _enqueue_event(
     db: Session,
     *,
     user_id: int,
     event_type: str,
-    lead: Lead,
+    data: dict,
 ) -> None:
     endpoints = db.scalars(
         select(WebhookEndpoint).where(
@@ -52,7 +53,31 @@ def enqueue_lead_event(
         "id": event_id,
         "type": event_type,
         "created_at": created_at,
-        "data": {
+        "data": data,
+    }
+    for endpoint in matching:
+        db.add(
+            WebhookDelivery(
+                endpoint_id=endpoint.id,
+                event_id=event_id,
+                event_type=event_type,
+                payload=payload,
+            )
+        )
+
+
+def enqueue_lead_event(
+    db: Session,
+    *,
+    user_id: int,
+    event_type: str,
+    lead: Lead,
+) -> None:
+    _enqueue_event(
+        db,
+        user_id=user_id,
+        event_type=event_type,
+        data={
             "lead": {
                 "id": lead.id,
                 "name": lead.name,
@@ -66,16 +91,32 @@ def enqueue_lead_event(
                 "updated_at": lead.updated_at.isoformat() if lead.updated_at else None,
             }
         },
-    }
-    for endpoint in matching:
-        db.add(
-            WebhookDelivery(
-                endpoint_id=endpoint.id,
-                event_id=event_id,
-                event_type=event_type,
-                payload=payload,
-            )
-        )
+    )
+
+
+def enqueue_task_event(
+    db: Session,
+    *,
+    user_id: int,
+    event_type: str,
+    task: Task,
+) -> None:
+    _enqueue_event(
+        db,
+        user_id=user_id,
+        event_type=event_type,
+        data={
+            "task": {
+                "id": task.id,
+                "lead_id": task.lead_id,
+                "title": task.title,
+                "description": task.description,
+                "due_at": task.due_at.isoformat(),
+                "completed": task.completed,
+                "created_at": task.created_at.isoformat() if task.created_at else None,
+            }
+        },
+    )
 
 
 def delete_endpoint(db: Session, endpoint: WebhookEndpoint) -> None:

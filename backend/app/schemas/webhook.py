@@ -3,7 +3,14 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
 
-WebhookEvent = Literal["lead.created", "lead.updated", "lead.status_changed"]
+WebhookEvent = Literal[
+    "lead.created",
+    "lead.updated",
+    "lead.status_changed",
+    "task.created",
+    "task.completed",
+    "task.reopened",
+]
 
 
 class WebhookCreate(BaseModel):
