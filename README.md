@@ -180,6 +180,8 @@ O ambiente de desenvolvimento utiliza PostgreSQL executado através do Docker Co
 
 As alterações de estrutura do banco são controladas pelo Alembic.
 
+O destino de deploy recomendado é Render para serviços e PostgreSQL privado, com Cloudflare como proxy/WAF do frontend. Custos e sequência estão em [docs/deployment-plan.md](docs/deployment-plan.md); nenhum recurso de nuvem está provisionado.
+
 ## Testes e validação
 
 Backend com Docker (usa SQLite em memória e não conecta ao PostgreSQL de desenvolvimento):

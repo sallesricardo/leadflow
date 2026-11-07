@@ -55,7 +55,11 @@ async function handleRequest(request: Request, context: RouteContext) {
     return Response.json({ detail: "Authentication required" }, { status: 401 });
   }
 
-  const backendBaseUrl = process.env.BACKEND_API_URL;
+  const backendBaseUrl =
+    process.env.BACKEND_API_URL ??
+    (process.env.BACKEND_API_HOSTPORT
+      ? `http://${process.env.BACKEND_API_HOSTPORT}`
+      : undefined);
   if (!backendBaseUrl) {
     return Response.json(
       { detail: "Backend não configurado" },

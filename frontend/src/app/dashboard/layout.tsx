@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   SidebarInset,
@@ -34,7 +35,9 @@ export default function DashboardLayout({
           </div>
 
           <div className="ml-auto px-4">
-            <TaskNotifications />
+            <Suspense fallback={null}>
+              <TaskNotifications />
+            </Suspense>
           </div>
         </header>
 

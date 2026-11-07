@@ -177,6 +177,8 @@ Para construir somente a imagem da API:
 docker build -f backend/Dockerfile -t leadflow-api backend
 ```
 
+O container respeita `PORT`; localmente usa `8000`, enquanto o Blueprint Render define `10000`. URLs `postgres://` e `postgresql://` são convertidas internamente para o driver psycopg v3, instalado pela dependência do projeto.
+
 ## Testes
 
 Para rodar a suíte em container isolado, a partir da raiz do repositório:

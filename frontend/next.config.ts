@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  output: "standalone",
   async headers() {
     const isDev = process.env.NODE_ENV === "development";
     const contentSecurityPolicy = [

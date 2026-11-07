@@ -21,6 +21,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
+      PORT: "8000"
       DATABASE_URL: postgresql+psycopg://leadflow:leadflow@db:5432/leadflow
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-leadflow-local-dev-secret-change-me}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
