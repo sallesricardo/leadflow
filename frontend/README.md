@@ -221,3 +221,5 @@ BACKEND_API_URL=<api-url>
 ```
 
 Essa variável é lida somente no servidor pelo BFF. Sem ela, as rotas BFF retornam `503` em vez de tentar encaminhar chamadas para um endereço padrão.
+
+O Next aplica uma CSP base para restringir fontes e bloquear objetos e framing. A política permite scripts e estilos inline para manter compatibilidade com o Next e o partial prefetching atual; uma CSP estrita com nonce exige renderização dinâmica e uma revisão do partial prefetching antes de ser ativada.

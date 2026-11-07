@@ -187,6 +187,8 @@ docker compose --profile test run --build --rm test
 
 O container de testes não inicia nem acessa o PostgreSQL. Os testes HTTP sobem um servidor temporário em loopback dentro do container e usam SQLite em memória.
 
+Antes de expor a API publicamente, configure rate limiting compartilhado no proxy ou gateway de entrada, pelo menos para cadastro e login. Não há rate limiter por processo na API.
+
 Para executar localmente, instale as dependências de teste e rode o pytest:
 
 ```bash
