@@ -161,15 +161,38 @@ Health check:
 GET /health
 ```
 
-## Testes
+### Execução com Docker Compose
 
-Com o ambiente virtual ativado, execute a suíte de testes:
+Na raiz do repositório, inicie o PostgreSQL e a API. O serviço da API aplica as migrations antes de iniciar o servidor:
 
 ```bash
-pytest
+docker compose up -d --build
 ```
 
-Os testes atuais cobrem hashing/verificação de senha e criação, leitura e rejeição de tokens JWT inválidos.
+API e Swagger ficam disponíveis em `http://localhost:8000` e `http://localhost:8000/docs`. O Compose usa um segredo de desenvolvimento padrão; defina `JWT_SECRET_KEY` no ambiente antes de iniciar se precisar substituí-lo.
+
+Para construir somente a imagem da API:
+
+```bash
+docker build -f backend/Dockerfile -t leadflow-api backend
+```
+
+## Testes
+
+Para rodar a suíte em container isolado, a partir da raiz do repositório:
+
+```bash
+docker compose --profile test run --build --rm test
+```
+
+O container de testes não inicia nem acessa o PostgreSQL. Os testes HTTP sobem um servidor temporário em loopback dentro do container e usam SQLite em memória.
+
+Para executar localmente, instale as dependências de teste e rode o pytest:
+
+```bash
+pip install -r requirements-test.txt
+pytest
+```
 
 ## Autenticação
 

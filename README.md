@@ -78,10 +78,10 @@ git clone <repository-url>
 cd leadflow
 ```
 
-### 2. Iniciar o PostgreSQL
+### 2. Iniciar o backend e o PostgreSQL
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
 Verifique os containers:
@@ -90,7 +90,9 @@ Verifique os containers:
 docker compose ps
 ```
 
-### 3. Configurar o backend
+### 3. Configurar o backend para execução local (opcional)
+
+O Compose já inicia a API em container. Para rodá-la diretamente no host, inicie apenas o banco com `docker compose up -d db`; se já iniciou tudo, pare o container da API com `docker compose stop api`.
 
 Entre no diretório:
 
@@ -101,7 +103,7 @@ cd backend
 Crie o ambiente virtual:
 
 ```bash
-python3.11 -m venv .venv
+python3.13 -m venv .venv
 source .venv/bin/activate
 ```
 
@@ -180,9 +182,16 @@ As alterações de estrutura do banco são controladas pelo Alembic.
 
 ## Testes e validação
 
-Backend (a partir de `backend/`):
+Backend com Docker (usa SQLite em memória e não conecta ao PostgreSQL de desenvolvimento):
 
 ```bash
+docker compose --profile test run --build --rm test
+```
+
+Backend local, com as dependências de teste instaladas (a partir de `backend/`):
+
+```bash
+pip install -r requirements-test.txt
 pytest
 ```
 

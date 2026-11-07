@@ -1,4 +1,5 @@
 import pytest
+from jwt import InvalidTokenError
 
 from app.core.security import (
     create_access_token,
@@ -25,5 +26,5 @@ def test_access_token_round_trip_preserves_user_id():
 def test_access_token_rejects_invalid_signature():
     token = create_access_token(42)
 
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidTokenError):
         decode_access_token(f"{token}invalid")

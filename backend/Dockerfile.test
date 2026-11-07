@@ -1,0 +1,25 @@
+FROM python:3.13-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    DATABASE_URL=sqlite+pysqlite:// \
+    JWT_SECRET_KEY=leadflow-test-secret-key-long-enough-for-hs256
+
+WORKDIR /app
+
+COPY requirements-test.txt ./requirements-test.txt
+COPY requirements.txt ./requirements.txt
+COPY pyproject.toml ./pyproject.toml
+RUN pip install --no-cache-dir -r requirements-test.txt
+
+COPY app ./app
+COPY tests ./tests
+
+RUN addgroup --system leadflow \
+    && adduser --system --ingroup leadflow leadflow \
+    && chown -R leadflow:leadflow /app
+
+USER leadflow
+
+CMD ["pytest", "-q"]
