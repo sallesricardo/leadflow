@@ -32,8 +32,28 @@ services:
       - alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     depends_on:
       db:
+        condition: service_healthy
+
+  webhook-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.webhooks.worker"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://leadflow:leadflow@db:5432/leadflow
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-leadflow-local-dev-secret-change-me}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+    depends_on:
+      api:
         condition: service_healthy
 
   test:

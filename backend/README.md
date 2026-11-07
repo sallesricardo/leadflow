@@ -169,7 +169,7 @@ Na raiz do repositório, inicie o PostgreSQL e a API. O serviço da API aplica a
 docker compose up -d --build
 ```
 
-API e Swagger ficam disponíveis em `http://localhost:8000` e `http://localhost:8000/docs`. O Compose usa um segredo de desenvolvimento padrão; defina `JWT_SECRET_KEY` no ambiente antes de iniciar se precisar substituí-lo.
+API e Swagger ficam disponíveis em `http://localhost:8000` e `http://localhost:8000/docs`. O Compose inicia também o worker de webhooks depois que a API fica saudável. O Compose usa um segredo de desenvolvimento padrão; defina `JWT_SECRET_KEY` no ambiente antes de iniciar se precisar substituí-lo.
 
 Para construir somente a imagem da API:
 
@@ -318,7 +318,7 @@ As tarefas pertencem ao usuário autenticado e ficam associadas a um lead desse 
 
 Usuários autenticados podem cadastrar destinos HTTPS em `POST /api/v1/webhooks`, listar em `GET /api/v1/webhooks`, consultar as últimas entregas em `GET /api/v1/webhooks/{id}/deliveries` e remover destinos em `DELETE /api/v1/webhooks/{id}`. Cada destino escolhe eventos `lead.created`, `lead.updated` e `lead.status_changed`. O segredo de assinatura é retornado apenas na criação; o receptor valida `X-LeadFlow-Signature` como HMAC-SHA256 do corpo bruto. Os payloads contêm dados do lead, incluindo e-mail, telefone e observações.
 
-As entregas ficam numa fila persistida no banco e usam retentativas com espera crescente. Para processá-las em desenvolvimento, rode em outro terminal dentro de `backend/`:
+As entregas ficam numa fila persistida no banco e usam retentativas com espera crescente. Com Docker Compose, o serviço `webhook-worker` processa a fila automaticamente. Para execução direta no host, rode em outro terminal dentro de `backend/`:
 
 ```bash
 python -m app.webhooks.worker

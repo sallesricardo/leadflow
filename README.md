@@ -313,7 +313,7 @@ http://localhost:8000/docs
 
 ### Ainda pendentes
 
-- [ ] Webhooks e automações (API e interface inicial de webhooks; validação funcional, worker operacional e automações ainda pendentes)
+- [ ] Webhooks e automações (API e interface inicial; worker local no Compose; validação funcional e automações ainda pendentes)
 - [ ] Integração com WhatsApp
 - [ ] Observabilidade e hardening para produção
 - [ ] Deploy e demo online (infra preparada; domínio, zona Cloudflare e provisionamento ainda pendentes)
