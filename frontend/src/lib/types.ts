@@ -46,3 +46,29 @@ export interface Task {
   completed: boolean;
   created_at: string;
 }
+
+export type WebhookEvent = "lead.created" | "lead.updated" | "lead.status_changed";
+
+export interface WebhookEndpoint {
+  id: number;
+  url: string;
+  events: WebhookEvent[];
+  enabled: boolean;
+  created_at: string;
+}
+
+export interface WebhookCreated extends WebhookEndpoint {
+  secret: string;
+}
+
+export interface WebhookDelivery {
+  id: number;
+  event_id: string;
+  event_type: WebhookEvent;
+  status: "pending" | "processing" | "delivered" | "failed";
+  attempt_count: number;
+  last_status_code: number | null;
+  last_error: string | null;
+  delivered_at: string | null;
+  created_at: string;
+}

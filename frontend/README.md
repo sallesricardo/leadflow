@@ -197,6 +197,7 @@ NEGOTIATION
 - [x] Adicionar testes automatizados relevantes
 - [x] Dashboard com métricas de etapas, conversão, valores e origens
 - [x] Tarefas e lembretes vinculados a leads
+- [x] Administração de destinos de webhook e visualização das entregas recentes
 
 As notificações de tarefas são internas ao dashboard. O MVP não envia e-mail nem push; as tarefas próximas ao prazo são consultadas pela API e atualizadas no painel de lembretes.
 

@@ -313,7 +313,7 @@ http://localhost:8000/docs
 
 ### Ainda pendentes
 
-- [ ] Webhooks e automações (API inicial de webhooks implementada; interface e automações ainda pendentes)
+- [ ] Webhooks e automações (API e interface inicial de webhooks; validação funcional, worker operacional e automações ainda pendentes)
 - [ ] Integração com WhatsApp
 - [ ] Observabilidade e hardening para produção
 - [ ] Deploy e demo online (infra preparada; domínio, zona Cloudflare e provisionamento ainda pendentes)
@@ -326,7 +326,7 @@ M1–M6 (CRUD, autenticação, pipeline, atividades, métricas e tarefas) estão
 M4.5  Revisão visual, responsividade e consistência da UI (concluído)
 M5    Métricas e testes automatizados implementados
 M6    Tarefas vinculadas a leads, prazos e conclusão (implementado)
-M7    Webhooks, automações e integrações (em andamento: primeira fatia de webhooks no backend)
+M7    Webhooks, automações e integrações (em andamento: API e interface inicial de webhooks)
 M8    Observabilidade, produção e deploy
 ```
 
