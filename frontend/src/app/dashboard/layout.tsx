@@ -5,6 +5,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { TaskNotifications } from "@/components/task-notifications";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,6 +31,10 @@ export default function DashboardLayout({
             <div className="text-sm font-medium">
               LeadFlow
             </div>
+          </div>
+
+          <div className="ml-auto px-4">
+            <TaskNotifications />
           </div>
         </header>
 

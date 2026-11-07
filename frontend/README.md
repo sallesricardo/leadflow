@@ -187,15 +187,18 @@ NEGOTIATION
 - [x] Tela de detalhes e edição de lead
 - [x] Alteração de status e timeline de atividades
 - [x] Kanban com arrastar e soltar
+- [x] Lembretes internos no cabeçalho para tarefas atrasadas ou vencendo nas próximas 24 horas; atualizam a cada minuto e ao retornar à aba
 
 ### Pendentes
 
 - [x] Interface de cadastro de usuário integrada à API de registro
 - [x] Revisar responsividade, incluindo o uso do Kanban em dispositivos móveis
 - [x] Finalizar consistência visual entre login, dashboard e detalhes
-- [ ] Adicionar testes automatizados relevantes
+- [x] Adicionar testes automatizados relevantes
 - [x] Dashboard com métricas de etapas, conversão, valores e origens
 - [x] Tarefas e lembretes vinculados a leads
+
+As notificações de tarefas são internas ao dashboard. O MVP não envia e-mail nem push; as tarefas próximas ao prazo são consultadas pela API e atualizadas no painel de lembretes.
 
 ## Desenvolvimento
 
