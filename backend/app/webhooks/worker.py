@@ -62,17 +62,21 @@ def _deliver(endpoint: WebhookEndpoint, delivery: WebhookDelivery) -> tuple[int,
     for address in addresses:
         connection = PinnedHTTPSConnection(parsed.hostname, port, address)
         try:
+            headers = {
+                "Content-Type": "application/json",
+                "User-Agent": "LeadFlow-Webhooks/1.0",
+                "X-LeadFlow-Event": delivery.event_type,
+                "X-LeadFlow-Event-Id": delivery.event_id,
+                "X-LeadFlow-Signature": f"sha256={signature}",
+            }
+            if endpoint.auth_token:
+                headers["Authorization"] = f"Bearer {endpoint.auth_token}"
+
             connection.request(
                 "POST",
                 target,
                 body=body,
-                headers={
-                    "Content-Type": "application/json",
-                    "User-Agent": "LeadFlow-Webhooks/1.0",
-                    "X-LeadFlow-Event": delivery.event_type,
-                    "X-LeadFlow-Event-Id": delivery.event_id,
-                    "X-LeadFlow-Signature": f"sha256={signature}",
-                },
+                headers=headers,
             )
             response = connection.getresponse()
             response.read(4096)

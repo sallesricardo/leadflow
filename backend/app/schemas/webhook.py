@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, SecretStr, field_validator
 
 WebhookEvent = Literal[
     "lead.created",
@@ -16,6 +16,7 @@ WebhookEvent = Literal[
 class WebhookCreate(BaseModel):
     url: HttpUrl
     events: list[WebhookEvent]
+    auth_token: SecretStr | None = Field(default=None, max_length=1024)
 
     @field_validator("url")
     @classmethod
@@ -24,9 +25,28 @@ class WebhookCreate(BaseModel):
             raise ValueError("Webhook URLs must use HTTPS")
         return value
 
+    @field_validator("auth_token")
+    @classmethod
+    def reject_token_whitespace(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is not None:
+            token = value.get_secret_value()
+            if not token or any(character.isspace() for character in token):
+                raise ValueError("Bearer tokens must be non-empty and contain no whitespace")
+        return value
+
 
 class WebhookUpdate(BaseModel):
-    enabled: bool
+    enabled: bool | None = None
+    auth_token: SecretStr | None = Field(default=None, max_length=1024)
+
+    @field_validator("auth_token")
+    @classmethod
+    def reject_token_whitespace(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is not None:
+            token = value.get_secret_value()
+            if not token or any(character.isspace() for character in token):
+                raise ValueError("Bearer tokens must be non-empty and contain no whitespace")
+        return value
 
 
 class WebhookResponse(BaseModel):
@@ -36,6 +56,7 @@ class WebhookResponse(BaseModel):
     url: str
     events: list[str]
     enabled: bool
+    has_auth_token: bool
     created_at: datetime
 
 

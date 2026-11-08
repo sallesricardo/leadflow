@@ -43,8 +43,17 @@ def create_webhook(
         user_id=current_user.id,
         url=str(payload.url),
         events=list(dict.fromkeys(payload.events)),
+        auth_token=payload.auth_token.get_secret_value() if payload.auth_token else None,
     )
-    return {**endpoint.__dict__, "secret": secret}
+    return {
+        "id": endpoint.id,
+        "url": endpoint.url,
+        "events": endpoint.events,
+        "enabled": endpoint.enabled,
+        "has_auth_token": endpoint.auth_token is not None,
+        "created_at": endpoint.created_at,
+        "secret": secret,
+    }
 
 
 @router.delete("/{endpoint_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -79,7 +88,17 @@ def update_webhook(
     )
     if endpoint is None:
         raise HTTPException(status_code=404, detail="Webhook not found")
-    return webhook_service.set_endpoint_enabled(db, endpoint, payload.enabled)
+    fields = payload.model_fields_set
+    if not fields:
+        raise HTTPException(status_code=422, detail="No webhook changes provided")
+    auth_token = payload.auth_token.get_secret_value() if payload.auth_token else None
+    return webhook_service.set_endpoint_enabled(
+        db,
+        endpoint,
+        enabled=payload.enabled,
+        auth_token=auth_token,
+        update_auth_token="auth_token" in fields,
+    )
 
 
 @router.get(

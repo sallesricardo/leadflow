@@ -16,11 +16,16 @@ class WebhookEndpoint(Base):
     )
     url: Mapped[str] = mapped_column(String(2048), nullable=False)
     secret: Mapped[str] = mapped_column(String(128), nullable=False)
+    auth_token: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     events: Mapped[list[str]] = mapped_column(JSON, nullable=False)
     enabled: Mapped[bool] = mapped_column(default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+    @property
+    def has_auth_token(self) -> bool:
+        return self.auth_token is not None
 
 
 class WebhookDelivery(Base):

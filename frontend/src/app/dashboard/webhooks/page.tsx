@@ -50,6 +50,8 @@ export default function WebhooksPage() {
   const [deliveriesError, setDeliveriesError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [url, setUrl] = useState("");
+  const [authToken, setAuthToken] = useState("");
+  const [tokenDrafts, setTokenDrafts] = useState<Record<number, string>>({});
   const [events, setEvents] = useState<WebhookEvent[]>(["lead.created", "lead.status_changed"]);
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -120,10 +122,11 @@ export default function WebhooksPage() {
     try {
       const created = await apiFetch<WebhookCreated>("/api/v1/webhooks", {
         method: "POST",
-        body: JSON.stringify({ url: url.trim(), events }),
+        body: JSON.stringify({ url: url.trim(), events, auth_token: authToken || null }),
       });
       setCreatedSecret(created.secret);
       setUrl("");
+      setAuthToken("");
       const data = await apiFetch<WebhookEndpoint[]>("/api/v1/webhooks");
       setEndpoints(data);
       setSelectedId(created.id);
@@ -165,6 +168,24 @@ export default function WebhooksPage() {
       toast.success(updated.enabled ? "Webhook reativado." : "Webhook pausado.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o webhook.");
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function updateWebhookToken(endpoint: WebhookEndpoint) {
+    setUpdatingId(endpoint.id);
+    const token = tokenDrafts[endpoint.id] ?? "";
+    try {
+      const updated = await apiFetch<WebhookEndpoint>(`/api/v1/webhooks/${endpoint.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ auth_token: token || null }),
+      });
+      setEndpoints((current) => current.map((item) => item.id === updated.id ? updated : item));
+      setTokenDrafts((current) => ({ ...current, [endpoint.id]: "" }));
+      toast.success(updated.has_auth_token ? "Token atualizado." : "Token removido.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o token.");
     } finally {
       setUpdatingId(null);
     }
@@ -218,13 +239,17 @@ export default function WebhooksPage() {
       <Card>
         <CardHeader>
           <CardTitle>Novo destino</CardTitle>
-          <CardDescription>O destino deve aceitar requisições HTTPS com payload JSON.</CardDescription>
+        <CardDescription>O destino deve aceitar HTTPS e payload JSON. Se informar um token, ele será enviado como Bearer no cabeçalho Authorization.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={createWebhook} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="webhook-url">URL HTTPS</Label>
               <Input id="webhook-url" type="url" inputMode="url" autoComplete="url" placeholder="https://exemplo.com/webhooks/leadflow" value={url} onChange={(event) => setUrl(event.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="webhook-auth-token">Token de autenticação (opcional)</Label>
+              <Input id="webhook-auth-token" type="password" autoComplete="new-password" placeholder="Token Bearer fornecido pelo sistema de destino" value={authToken} onChange={(event) => setAuthToken(event.target.value)} />
             </div>
             <fieldset className="space-y-3">
               <legend className="text-sm font-medium">Eventos</legend>
@@ -297,6 +322,19 @@ export default function WebhooksPage() {
                       <div className="flex flex-wrap gap-1.5">
                         {endpoint.events.map((event) => <Badge key={event} variant="outline">{eventLabel(event)}</Badge>)}
                       </div>
+                      <form onSubmit={(event) => { event.preventDefault(); void updateWebhookToken(endpoint); }} className="flex flex-col gap-2 sm:flex-row">
+                        <Input
+                          type="password"
+                          autoComplete="new-password"
+                          aria-label={`Token Bearer para ${endpoint.url}`}
+                          placeholder={endpoint.has_auth_token ? "Token configurado · informe outro para trocar ou deixe vazio para remover" : "Sem token · informe um para configurar"}
+                          value={tokenDrafts[endpoint.id] ?? ""}
+                          onChange={(event) => setTokenDrafts((current) => ({ ...current, [endpoint.id]: event.target.value }))}
+                        />
+                        <Button type="submit" variant="outline" size="sm" disabled={updatingId === endpoint.id || (!endpoint.has_auth_token && !tokenDrafts[endpoint.id])}>
+                          {endpoint.has_auth_token && !tokenDrafts[endpoint.id] ? "Remover token" : "Salvar token"}
+                        </Button>
+                      </form>
                     </CardContent>
                   </Card>
                 </li>

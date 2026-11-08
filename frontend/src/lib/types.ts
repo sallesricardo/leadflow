@@ -60,6 +60,7 @@ export interface WebhookEndpoint {
   url: string;
   events: WebhookEvent[];
   enabled: boolean;
+  has_auth_token: boolean;
   created_at: string;
 }
 

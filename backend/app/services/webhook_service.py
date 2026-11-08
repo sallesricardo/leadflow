@@ -16,12 +16,14 @@ def create_endpoint(
     user_id: int,
     url: str,
     events: list[str],
+    auth_token: str | None,
 ) -> tuple[WebhookEndpoint, str]:
     secret = secrets.token_urlsafe(32)
     endpoint = WebhookEndpoint(
         user_id=user_id,
         url=url,
         secret=secret,
+        auth_token=auth_token,
         events=events,
     )
     db.add(endpoint)
@@ -127,9 +129,15 @@ def delete_endpoint(db: Session, endpoint: WebhookEndpoint) -> None:
 def set_endpoint_enabled(
     db: Session,
     endpoint: WebhookEndpoint,
-    enabled: bool,
+    *,
+    enabled: bool | None,
+    auth_token: str | None,
+    update_auth_token: bool,
 ) -> WebhookEndpoint:
-    endpoint.enabled = enabled
+    if enabled is not None:
+        endpoint.enabled = enabled
+    if update_auth_token:
+        endpoint.auth_token = auth_token
     db.commit()
     db.refresh(endpoint)
     return endpoint
