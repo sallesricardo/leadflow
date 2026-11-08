@@ -100,3 +100,106 @@ def test_tasks_are_scoped_to_the_owner_and_can_be_completed(client, register_use
     assert hidden_status == 404
     assert completed_status == 200
     assert completed["completed"] is True
+
+
+def test_webhook_bearer_token_is_write_only(client, register_user, login_user):
+    register_user(client, "webhook-owner@example.com")
+    headers = login_user(client, "webhook-owner@example.com")
+    token = "destination-secret-value"
+
+    created_status, created = client.post(
+        "/api/v1/webhooks",
+        headers=headers,
+        json_body={
+            "url": "https://hooks.example.com/leadflow",
+            "events": ["lead.created", "task.created"],
+            "auth_token": token,
+        },
+    )
+    listed_status, listed = client.get("/api/v1/webhooks", headers=headers)
+    updated_status, updated = client.patch(
+        f"/api/v1/webhooks/{created['id']}",
+        headers=headers,
+        json_body={"auth_token": None},
+    )
+
+    assert created_status == 201
+    assert created["has_auth_token"] is True
+    assert created["secret"]
+    assert token not in str(created)
+    assert "auth_token" not in created
+    assert listed_status == 200
+    assert listed[0]["has_auth_token"] is True
+    assert token not in str(listed)
+    assert updated_status == 200
+    assert updated["has_auth_token"] is False
+
+
+def test_status_automation_creates_task_and_webhook_events(
+    client,
+    register_user,
+    login_user,
+):
+    register_user(client, "automation-owner@example.com")
+    headers = login_user(client, "automation-owner@example.com")
+    _, endpoint = client.post(
+        "/api/v1/webhooks",
+        headers=headers,
+        json_body={
+            "url": "https://hooks.example.com/tasks",
+            "events": ["lead.status_changed", "task.created", "task.completed"],
+        },
+    )
+    rule_status, rule = client.post(
+        "/api/v1/automations",
+        headers=headers,
+        json_body={
+            "name": "Acompanhar qualificados",
+            "trigger_status": "QUALIFIED",
+            "task_title": "Enviar proposta",
+            "task_description": "Preparar proposta comercial",
+            "due_in_days": 2,
+        },
+    )
+    _, lead = client.post(
+        "/api/v1/leads",
+        headers=headers,
+        json_body={"name": "Lead qualificado"},
+    )
+    changed_status, changed = client.patch(
+        f"/api/v1/leads/{lead['id']}",
+        headers=headers,
+        json_body={"status": "QUALIFIED"},
+    )
+    tasks_status, tasks = client.get("/api/v1/tasks", headers=headers)
+    deliveries_status, deliveries = client.get(
+        f"/api/v1/webhooks/{endpoint['id']}/deliveries",
+        headers=headers,
+    )
+
+    assert rule_status == 201
+    assert rule["enabled"] is True
+    assert changed_status == 200
+    assert changed["status"] == "QUALIFIED"
+    assert tasks_status == 200
+    assert len(tasks) == 1
+    assert tasks[0]["lead_id"] == lead["id"]
+    assert tasks[0]["title"] == "Enviar proposta"
+    assert deliveries_status == 200
+    assert {item["event_type"] for item in deliveries} == {
+        "lead.status_changed",
+        "task.created",
+    }
+
+    completed_status, completed = client.patch(
+        f"/api/v1/tasks/{tasks[0]['id']}",
+        headers=headers,
+        json_body={"completed": True},
+    )
+    _, refreshed_deliveries = client.get(
+        f"/api/v1/webhooks/{endpoint['id']}/deliveries",
+        headers=headers,
+    )
+    assert completed_status == 200
+    assert completed["completed"] is True
+    assert "task.completed" in {item["event_type"] for item in refreshed_deliveries}
