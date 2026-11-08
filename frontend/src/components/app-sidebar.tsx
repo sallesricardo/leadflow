@@ -10,6 +10,7 @@ import {
   ListTodo,
   Zap,
   Webhook,
+  Workflow,
 } from "lucide-react";
 
 import {
@@ -46,6 +47,11 @@ const navigation = [
     title: "Webhooks",
     url: "/dashboard/webhooks",
     icon: Webhook,
+  },
+  {
+    title: "Automações",
+    url: "/dashboard/automations",
+    icon: Workflow,
   },
 ];
 

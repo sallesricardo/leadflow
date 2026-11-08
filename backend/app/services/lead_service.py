@@ -4,6 +4,7 @@ from app.models.lead import Lead
 from app.models.lead_activity import LeadActivity
 from app.repositories import lead_activity as activity_repository
 from app.services.webhook_service import enqueue_lead_event
+from app.services.automation_service import create_follow_up_tasks
 
 
 def update_lead(
@@ -43,6 +44,9 @@ def update_lead(
             event_type="lead.status_changed" if old_status != new_status else "lead.updated",
             lead=lead,
         )
+
+    if old_status != new_status:
+        create_follow_up_tasks(db, lead, user_id)
 
     db.commit()
     db.refresh(lead)

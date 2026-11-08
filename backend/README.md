@@ -326,6 +326,10 @@ python -m app.webhooks.worker
 
 O worker aceita apenas destinos HTTPS que resolvam para endereços IP públicos e não segue redirecionamentos. A execução contínua do worker deve ser configurada no ambiente onde a API for executada.
 
+## Automações
+
+O MVP permite criar regras em `POST /api/v1/automations`, listar em `GET /api/v1/automations`, ativar/pausar em `PATCH /api/v1/automations/{id}` e remover em `DELETE /api/v1/automations/{id}`. Cada regra observa a entrada do lead numa etapa e cria uma tarefa associada ao lead com o título, descrição e prazo configurados. A automação e a atualização do lead são persistidas na mesma transação; as tarefas geradas também emitem o evento `task.created` para os webhooks inscritos.
+
 ## Testes
 
 Os testes automatizados usam SQLite em memória e não precisam iniciar o PostgreSQL. Na raiz do repositório, execute:

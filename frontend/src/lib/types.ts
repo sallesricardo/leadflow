@@ -79,3 +79,14 @@ export interface WebhookDelivery {
   delivered_at: string | null;
   created_at: string;
 }
+
+export interface AutomationRule {
+  id: number;
+  name: string;
+  trigger_status: LeadStatus;
+  task_title: string;
+  task_description: string | null;
+  due_in_days: number;
+  enabled: boolean;
+  created_at: string;
+}
