@@ -80,6 +80,16 @@ export interface WebhookDelivery {
   created_at: string;
 }
 
+export interface WebhookDeliverySummary {
+  pending: number;
+  processing: number;
+  delivered: number;
+  failed: number;
+  total: number;
+  oldest_pending_at: string | null;
+  latest_delivery_at: string | null;
+}
+
 export interface AutomationRule {
   id: number;
   name: string;

@@ -8,6 +8,7 @@ import { apiFetch } from "@/lib/api";
 import type {
   WebhookCreated,
   WebhookDelivery,
+  WebhookDeliverySummary,
   WebhookEndpoint,
   WebhookEvent,
 } from "@/lib/types";
@@ -46,6 +47,9 @@ function deliveryStatus(status: WebhookDelivery["status"]) {
 export default function WebhooksPage() {
   const [endpoints, setEndpoints] = useState<WebhookEndpoint[]>([]);
   const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([]);
+  const [summary, setSummary] = useState<WebhookDeliverySummary | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [deliveriesEndpointId, setDeliveriesEndpointId] = useState<number | null>(null);
   const [deliveriesError, setDeliveriesError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -56,6 +60,7 @@ export default function WebhooksPage() {
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshVersion, setRefreshVersion] = useState(0);
+  const [summaryRefreshVersion, setSummaryRefreshVersion] = useState(0);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
@@ -79,6 +84,30 @@ export default function WebhooksPage() {
       });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const loadSummary = () => {
+      apiFetch<WebhookDeliverySummary>("/api/v1/webhooks/summary")
+        .then((data) => {
+          if (!active) return;
+          setSummary(data);
+          setSummaryError(null);
+        })
+        .catch((error: Error) => {
+          if (active) setSummaryError(error.message || "Não foi possível carregar o resumo da fila.");
+        })
+        .finally(() => {
+          if (active) setSummaryLoading(false);
+        });
+    };
+    loadSummary();
+    const interval = window.setInterval(loadSummary, 30_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [summaryRefreshVersion]);
 
   useEffect(() => {
     if (selectedId === null) return;
@@ -130,6 +159,7 @@ export default function WebhooksPage() {
       const data = await apiFetch<WebhookEndpoint[]>("/api/v1/webhooks");
       setEndpoints(data);
       setSelectedId(created.id);
+      setSummaryRefreshVersion((current) => current + 1);
       toast.success("Webhook cadastrado.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível cadastrar o webhook.");
@@ -148,6 +178,7 @@ export default function WebhooksPage() {
         ? endpoints.find((item) => item.id !== endpoint.id)?.id ?? null
         : current);
       if (selectedId === endpoint.id) setDeliveriesEndpointId(null);
+      setSummaryRefreshVersion((current) => current + 1);
       setCreatedSecret(null);
       toast.success("Webhook removido.");
     } catch (error) {
@@ -199,6 +230,7 @@ export default function WebhooksPage() {
         { method: "POST" },
       );
       setDeliveries((current) => current.map((item) => item.id === updated.id ? updated : item));
+      setSummaryRefreshVersion((current) => current + 1);
       toast.success("Entrega reenfileirada.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível reenviar a entrega.");
@@ -235,6 +267,50 @@ export default function WebhooksPage() {
       <p className="rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
         As entregas são processadas pelo worker de webhooks do backend. Sem o worker ativo, os eventos ficam pendentes na fila.
       </p>
+
+      <section className="space-y-3" aria-labelledby="webhook-queue-heading">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 id="webhook-queue-heading" className="text-lg font-semibold">Estado geral da fila</h2>
+            <p className="text-xs text-muted-foreground">Todos os destinos · atualização automática a cada 30 segundos</p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={summaryLoading}
+            onClick={() => {
+              setSummaryLoading(true);
+              setSummaryRefreshVersion((current) => current + 1);
+            }}
+          >
+            <RefreshCw className={summaryLoading ? "animate-spin" : undefined} /> Atualizar
+          </Button>
+        </div>
+        {summaryError ? (
+          <p role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">{summaryError}</p>
+        ) : (
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+            {[
+              { label: "Total", value: summary?.total, detail: summary?.latest_delivery_at ? `Último evento ${formatDate(summary.latest_delivery_at)}` : "Sem eventos" },
+              { label: "Pendentes", value: summary?.pending, detail: summary?.oldest_pending_at ? `Mais antiga ${formatDate(summary.oldest_pending_at)}` : "Nenhuma na fila" },
+              { label: "Processando", value: summary?.processing, detail: "Em tentativa de envio" },
+              { label: "Entregues", value: summary?.delivered, detail: "Confirmadas pelo destino" },
+              { label: "Falhas", value: summary?.failed, detail: "Podem ser reenfileiradas" },
+            ].map((item) => (
+              <Card key={item.label}>
+                <CardHeader className="pb-2">
+                  <CardDescription>{item.label}</CardDescription>
+                  <CardTitle className="text-2xl">{summaryLoading && !summary ? "…" : item.value ?? 0}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-xs text-muted-foreground">{item.detail}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
 
       <Card>
         <CardHeader>

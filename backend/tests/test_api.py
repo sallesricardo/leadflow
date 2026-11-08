@@ -135,6 +135,64 @@ def test_webhook_bearer_token_is_write_only(client, register_user, login_user):
     assert updated["has_auth_token"] is False
 
 
+def test_webhook_delivery_summary_is_scoped_to_the_authenticated_user(
+    client,
+    register_user,
+    login_user,
+):
+    register_user(client, "webhook-summary-owner@example.com")
+    register_user(client, "webhook-summary-other@example.com")
+    owner_headers = login_user(client, "webhook-summary-owner@example.com")
+    other_headers = login_user(client, "webhook-summary-other@example.com")
+    endpoint_status, _ = client.post(
+        "/api/v1/webhooks",
+        headers=owner_headers,
+        json_body={
+            "url": "https://hooks.example.com/summary",
+            "events": ["lead.created"],
+        },
+    )
+    lead_status, _ = client.post(
+        "/api/v1/leads",
+        headers=owner_headers,
+        json_body={"name": "Lead com entrega pendente"},
+    )
+
+    owner_status, owner_summary = client.get(
+        "/api/v1/webhooks/summary",
+        headers=owner_headers,
+    )
+    other_status, other_summary = client.get(
+        "/api/v1/webhooks/summary",
+        headers=other_headers,
+    )
+    unauthenticated_status, _ = client.get("/api/v1/webhooks/summary")
+
+    assert endpoint_status == 201
+    assert lead_status == 201
+    assert owner_status == 200
+    assert owner_summary["pending"] == 1
+    assert owner_summary["processing"] == 0
+    assert owner_summary["delivered"] == 0
+    assert owner_summary["failed"] == 0
+    assert owner_summary["total"] == 1
+    assert owner_summary["oldest_pending_at"] is not None
+    assert owner_summary["latest_delivery_at"] is not None
+    assert set(owner_summary) == {
+        "pending",
+        "processing",
+        "delivered",
+        "failed",
+        "total",
+        "oldest_pending_at",
+        "latest_delivery_at",
+    }
+    assert other_status == 200
+    assert other_summary["total"] == 0
+    assert other_summary["latest_delivery_at"] is None
+    assert unauthenticated_status in (401, 403)
+
+
 def test_status_automation_creates_task_and_webhook_events(
     client,
     register_user,

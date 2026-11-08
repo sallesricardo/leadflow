@@ -76,3 +76,13 @@ class WebhookDeliveryResponse(BaseModel):
     last_error: str | None
     delivered_at: datetime | None
     created_at: datetime
+
+
+class WebhookDeliverySummary(BaseModel):
+    pending: int
+    processing: int
+    delivered: int
+    failed: int
+    total: int
+    oldest_pending_at: datetime | None
+    latest_delivery_at: datetime | None

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from app.api.auth import get_current_user
@@ -10,6 +10,7 @@ from app.schemas.webhook import (
     WebhookCreate,
     WebhookCreated,
     WebhookDeliveryResponse,
+    WebhookDeliverySummary,
     WebhookResponse,
     WebhookUpdate,
 )
@@ -53,6 +54,46 @@ def create_webhook(
         "has_auth_token": endpoint.auth_token is not None,
         "created_at": endpoint.created_at,
         "secret": secret,
+    }
+
+
+@router.get("/summary", response_model=WebhookDeliverySummary)
+def webhook_delivery_summary(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    pending_status = WebhookDelivery.status.in_(("pending", "processing"))
+    result = db.execute(
+        select(
+            func.count(WebhookDelivery.id).label("total"),
+            func.sum(case((WebhookDelivery.status == "pending", 1), else_=0)).label(
+                "pending"
+            ),
+            func.sum(case((WebhookDelivery.status == "processing", 1), else_=0)).label(
+                "processing"
+            ),
+            func.sum(case((WebhookDelivery.status == "delivered", 1), else_=0)).label(
+                "delivered"
+            ),
+            func.sum(case((WebhookDelivery.status == "failed", 1), else_=0)).label(
+                "failed"
+            ),
+            func.min(case((pending_status, WebhookDelivery.created_at), else_=None)).label(
+                "oldest_pending_at"
+            ),
+            func.max(WebhookDelivery.created_at).label("latest_delivery_at"),
+        )
+        .join(WebhookEndpoint, WebhookEndpoint.id == WebhookDelivery.endpoint_id)
+        .where(WebhookEndpoint.user_id == current_user.id)
+    ).one()
+    return {
+        "pending": result.pending or 0,
+        "processing": result.processing or 0,
+        "delivered": result.delivered or 0,
+        "failed": result.failed or 0,
+        "total": result.total or 0,
+        "oldest_pending_at": result.oldest_pending_at,
+        "latest_delivery_at": result.latest_delivery_at,
     }
 
 

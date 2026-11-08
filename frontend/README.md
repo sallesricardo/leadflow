@@ -198,6 +198,7 @@ NEGOTIATION
 - [x] Dashboard com métricas de etapas, conversão, valores e origens
 - [x] Tarefas e lembretes vinculados a leads
 - [x] Administração de destinos de webhook e visualização das entregas recentes
+- [x] Resumo agregado da fila de webhooks por estado, atualizado a cada 30 segundos
 - [x] Regras de automação para criar tarefas ao entrar numa etapa do pipeline
 
 As notificações de tarefas são internas ao dashboard. O MVP não envia e-mail nem push; as tarefas próximas ao prazo são consultadas pela API e atualizadas no painel de lembretes.
