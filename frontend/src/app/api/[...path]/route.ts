@@ -9,6 +9,7 @@ type RouteContext = {
 };
 
 async function handleRequest(request: Request, context: RouteContext) {
+  const requestId = crypto.randomUUID();
   const { path } = await context.params;
   const routePath = path.join("/");
   const method = request.method.toUpperCase();
@@ -76,6 +77,7 @@ async function handleRequest(request: Request, context: RouteContext) {
 
     if (contentType) headers.set("Content-Type", contentType);
     if (accept) headers.set("Accept", accept);
+    headers.set("X-Request-ID", requestId);
     if (sessionToken && !isLogin && !isPublicRegistration) {
       headers.set("Authorization", `Bearer ${sessionToken}`);
     }
@@ -90,6 +92,7 @@ async function handleRequest(request: Request, context: RouteContext) {
         signal: request.signal,
       },
     );
+    const responseRequestId = upstream.headers.get("x-request-id") ?? requestId;
 
     if (isLogin) {
       if (!upstream.ok) {
@@ -99,7 +102,13 @@ async function handleRequest(request: Request, context: RouteContext) {
         if (!loginData.access_token) {
           return Response.json(
             { detail: "Invalid login response" },
-            { status: 502, headers: { "Cache-Control": "no-store" } },
+            {
+              status: 502,
+              headers: {
+                "Cache-Control": "no-store",
+                "X-Request-ID": responseRequestId,
+              },
+            },
           );
         }
 
@@ -109,7 +118,12 @@ async function handleRequest(request: Request, context: RouteContext) {
         });
         return Response.json(
           { authenticated: true },
-          { headers: { "Cache-Control": "no-store" } },
+          {
+            headers: {
+              "Cache-Control": "no-store",
+              "X-Request-ID": responseRequestId,
+            },
+          },
         );
       }
     }
@@ -123,6 +137,7 @@ async function handleRequest(request: Request, context: RouteContext) {
     if (upstreamContentType) {
       responseHeaders.set("Content-Type", upstreamContentType);
     }
+    responseHeaders.set("X-Request-ID", responseRequestId);
 
     return new Response(upstream.body, {
       status: upstream.status,
@@ -131,7 +146,13 @@ async function handleRequest(request: Request, context: RouteContext) {
   } catch {
     return Response.json(
       { detail: "Backend indisponível" },
-      { status: 502, headers: { "Cache-Control": "no-store" } },
+      {
+        status: 502,
+        headers: {
+          "Cache-Control": "no-store",
+          "X-Request-ID": requestId,
+        },
+      },
     );
   }
 }
