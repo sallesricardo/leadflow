@@ -256,6 +256,7 @@ export default function WebhooksPage() {
   }
 
   const selectedEndpoint = endpoints.find((endpoint) => endpoint.id === selectedId) ?? null;
+  const hasStaleQueue = summary?.stale_pending ?? false;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
@@ -290,10 +291,27 @@ export default function WebhooksPage() {
         {summaryError ? (
           <p role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">{summaryError}</p>
         ) : (
-          <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+          <>
+            {Boolean(summary?.failed) && (
+              <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                {summary?.failed} {summary?.failed === 1 ? "entrega falhou" : "entregas falharam"}. Revise o destino e reenvie as entregas necessárias.
+              </p>
+            )}
+            {hasStaleQueue && (
+              <p role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-800 dark:text-amber-300">
+                Há entrega pronta há mais de 2 minutos. Verifique se o worker de webhooks está ativo.
+              </p>
+            )}
+            {Boolean(summary?.paused_pending) && (
+              <p role="status" className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
+                {summary?.paused_pending} {summary?.paused_pending === 1 ? "entrega aguarda" : "entregas aguardam"} destino pausado e não contam como fila atrasada.
+              </p>
+            )}
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
             {[
               { label: "Total", value: summary?.total, detail: summary?.latest_delivery_at ? `Último evento ${formatDate(summary.latest_delivery_at)}` : "Sem eventos" },
               { label: "Pendentes", value: summary?.pending, detail: summary?.oldest_pending_at ? `Mais antiga ${formatDate(summary.oldest_pending_at)}` : "Nenhuma na fila" },
+              { label: "Em pausa", value: summary?.paused_pending, detail: "Aguardam reativação do destino" },
               { label: "Processando", value: summary?.processing, detail: "Em tentativa de envio" },
               { label: "Entregues", value: summary?.delivered, detail: "Confirmadas pelo destino" },
               { label: "Falhas", value: summary?.failed, detail: "Podem ser reenfileiradas" },
@@ -308,7 +326,8 @@ export default function WebhooksPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
+            </div>
+          </>
         )}
       </section>
 

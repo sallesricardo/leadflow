@@ -80,9 +80,12 @@ class WebhookDeliveryResponse(BaseModel):
 
 class WebhookDeliverySummary(BaseModel):
     pending: int
+    paused_pending: int
     processing: int
     delivered: int
     failed: int
     total: int
     oldest_pending_at: datetime | None
+    oldest_due_pending_at: datetime | None
+    stale_pending: bool
     latest_delivery_at: datetime | None

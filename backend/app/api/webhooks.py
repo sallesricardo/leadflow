@@ -1,3 +1,5 @@
+from datetime import UTC, datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
@@ -17,6 +19,7 @@ from app.schemas.webhook import (
 from app.services import webhook_service
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
+STALE_QUEUE_AFTER = timedelta(minutes=2)
 
 
 @router.get("", response_model=list[WebhookResponse])
@@ -62,13 +65,27 @@ def webhook_delivery_summary(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    now = datetime.now(UTC)
     pending_status = WebhookDelivery.status.in_(("pending", "processing"))
+    due_pending_status = (
+        WebhookEndpoint.enabled.is_(True)
+        & pending_status
+        & (WebhookDelivery.available_at <= now)
+    )
+    paused_pending_status = (
+        WebhookEndpoint.enabled.is_(False)
+        & (WebhookDelivery.status == "pending")
+    )
+    stale_pending_status = due_pending_status & (
+        WebhookDelivery.created_at <= now - STALE_QUEUE_AFTER
+    )
     result = db.execute(
         select(
             func.count(WebhookDelivery.id).label("total"),
             func.sum(case((WebhookDelivery.status == "pending", 1), else_=0)).label(
                 "pending"
             ),
+            func.sum(case((paused_pending_status, 1), else_=0)).label("paused_pending"),
             func.sum(case((WebhookDelivery.status == "processing", 1), else_=0)).label(
                 "processing"
             ),
@@ -81,6 +98,10 @@ def webhook_delivery_summary(
             func.min(case((pending_status, WebhookDelivery.created_at), else_=None)).label(
                 "oldest_pending_at"
             ),
+            func.min(case((due_pending_status, WebhookDelivery.created_at), else_=None)).label(
+                "oldest_due_pending_at"
+            ),
+            func.sum(case((stale_pending_status, 1), else_=0)).label("stale_pending_count"),
             func.max(WebhookDelivery.created_at).label("latest_delivery_at"),
         )
         .join(WebhookEndpoint, WebhookEndpoint.id == WebhookDelivery.endpoint_id)
@@ -88,11 +109,14 @@ def webhook_delivery_summary(
     ).one()
     return {
         "pending": result.pending or 0,
+        "paused_pending": result.paused_pending or 0,
         "processing": result.processing or 0,
         "delivered": result.delivered or 0,
         "failed": result.failed or 0,
         "total": result.total or 0,
         "oldest_pending_at": result.oldest_pending_at,
+        "oldest_due_pending_at": result.oldest_due_pending_at,
+        "stale_pending": bool(result.stale_pending_count),
         "latest_delivery_at": result.latest_delivery_at,
     }
 

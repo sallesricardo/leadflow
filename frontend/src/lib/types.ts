@@ -82,11 +82,14 @@ export interface WebhookDelivery {
 
 export interface WebhookDeliverySummary {
   pending: number;
+  paused_pending: number;
   processing: number;
   delivered: number;
   failed: number;
   total: number;
   oldest_pending_at: string | null;
+  oldest_due_pending_at: string | null;
+  stale_pending: boolean;
   latest_delivery_at: string | null;
 }
 
