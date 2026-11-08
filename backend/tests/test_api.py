@@ -192,7 +192,11 @@ def test_webhook_delivery_summary_is_scoped_to_the_authenticated_user(
         "oldest_due_pending_at",
         "stale_pending",
         "latest_delivery_at",
+        "worker_active",
+        "worker_last_heartbeat_at",
     }
+    assert owner_summary["worker_active"] is False
+    assert owner_summary["worker_last_heartbeat_at"] is None
     assert other_status == 200
     assert other_summary["total"] == 0
     assert other_summary["latest_delivery_at"] is None

@@ -14,6 +14,8 @@ COPY pyproject.toml ./pyproject.toml
 RUN pip install --no-cache-dir -r requirements-test.txt
 
 COPY app ./app
+COPY alembic ./alembic
+COPY alembic.ini ./alembic.ini
 COPY tests ./tests
 
 RUN addgroup --system leadflow \

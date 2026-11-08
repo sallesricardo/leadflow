@@ -91,6 +91,8 @@ export interface WebhookDeliverySummary {
   oldest_due_pending_at: string | null;
   stale_pending: boolean;
   latest_delivery_at: string | null;
+  worker_active: boolean;
+  worker_last_heartbeat_at: string | null;
 }
 
 export interface AutomationRule {

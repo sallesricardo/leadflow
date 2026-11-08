@@ -3,7 +3,7 @@ from app.models.automation import AutomationRule
 from app.models.user import User
 from app.models.lead_activity import LeadActivity
 from app.models.task import Task
-from app.models.webhook import WebhookDelivery, WebhookEndpoint
+from app.models.webhook import WebhookDelivery, WebhookEndpoint, WebhookWorkerHeartbeat
 
 __all__ = [
     "Lead",
@@ -13,4 +13,5 @@ __all__ = [
     "Task",
     "WebhookEndpoint",
     "WebhookDelivery",
+    "WebhookWorkerHeartbeat",
 ]

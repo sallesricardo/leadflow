@@ -2,6 +2,11 @@ import hashlib
 import hmac
 from types import SimpleNamespace
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+
+from app.core.database import Base
 from app.webhooks import worker
 
 
@@ -55,3 +60,23 @@ def test_delivery_sends_bearer_token_and_hmac_signature(monkeypatch):
     assert error is None
     assert connection.headers["Authorization"] == "Bearer destination-bearer-token"
     assert connection.headers["X-LeadFlow-Signature"] == f"sha256={expected_signature}"
+
+
+def test_record_worker_heartbeat(monkeypatch):
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    session_factory = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+    Base.metadata.create_all(engine)
+    monkeypatch.setattr(worker, "SessionLocal", session_factory)
+
+    worker.record_worker_heartbeat()
+
+    with session_factory() as db:
+        heartbeat = db.get(worker.WebhookWorkerHeartbeat, worker.WORKER_KEY)
+    assert heartbeat is not None
+    assert heartbeat.heartbeat_at is not None
+    Base.metadata.drop_all(engine)
+    engine.dispose()

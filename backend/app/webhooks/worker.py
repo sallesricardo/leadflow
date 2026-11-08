@@ -14,11 +14,13 @@ from urllib.parse import urlsplit
 from sqlalchemy import or_, select
 
 from app.core.database import SessionLocal
-from app.models.webhook import WebhookDelivery, WebhookEndpoint
+from app.models.webhook import WebhookDelivery, WebhookEndpoint, WebhookWorkerHeartbeat
 
 logger = logging.getLogger("leadflow.webhooks")
 MAX_ATTEMPTS = 8
 DELIVERY_LEASE = timedelta(minutes=2)
+HEARTBEAT_INTERVAL_SECONDS = 10
+WORKER_KEY = "webhook-delivery"
 
 
 class WebhookDeliveryError(RuntimeError):
@@ -195,6 +197,17 @@ def process_one() -> bool:
     return True
 
 
+def record_worker_heartbeat() -> None:
+    now = datetime.now(UTC)
+    with SessionLocal() as db:
+        heartbeat = db.get(WebhookWorkerHeartbeat, WORKER_KEY)
+        if heartbeat is None:
+            db.add(WebhookWorkerHeartbeat(worker_key=WORKER_KEY, heartbeat_at=now))
+        else:
+            heartbeat.heartbeat_at = now
+        db.commit()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Deliver queued LeadFlow webhooks")
     parser.add_argument("--once", action="store_true", help="Process due deliveries and exit")
@@ -202,8 +215,15 @@ def main() -> None:
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
+    logger.info("webhook worker started poll_seconds=%s", args.poll_seconds)
+    record_worker_heartbeat()
+    last_heartbeat = time.monotonic()
     while True:
         processed = process_one()
+        monotonic_now = time.monotonic()
+        if monotonic_now - last_heartbeat >= HEARTBEAT_INTERVAL_SECONDS:
+            record_worker_heartbeat()
+            last_heartbeat = monotonic_now
         if args.once:
             if not processed:
                 return

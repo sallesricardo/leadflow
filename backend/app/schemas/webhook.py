@@ -89,3 +89,5 @@ class WebhookDeliverySummary(BaseModel):
     oldest_due_pending_at: datetime | None
     stale_pending: bool
     latest_delivery_at: datetime | None
+    worker_active: bool
+    worker_last_heartbeat_at: datetime | None

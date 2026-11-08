@@ -275,18 +275,34 @@ export default function WebhooksPage() {
             <h2 id="webhook-queue-heading" className="text-lg font-semibold">Estado geral da fila</h2>
             <p className="text-xs text-muted-foreground">Todos os destinos · atualização automática a cada 30 segundos</p>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={summaryLoading}
-            onClick={() => {
-              setSummaryLoading(true);
-              setSummaryRefreshVersion((current) => current + 1);
-            }}
-          >
-            <RefreshCw className={summaryLoading ? "animate-spin" : undefined} /> Atualizar
-          </Button>
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={summary?.worker_active ? "secondary" : "outline"}>
+                {summaryLoading && !summary
+                  ? "Verificando worker…"
+                  : summary?.worker_active
+                    ? "Worker ativo"
+                    : "Worker inativo"}
+              </Badge>
+              {summary?.worker_last_heartbeat_at && (
+                <span className="text-xs text-muted-foreground">
+                  Heartbeat {formatDate(summary.worker_last_heartbeat_at)}
+                </span>
+              )}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={summaryLoading}
+              onClick={() => {
+                setSummaryLoading(true);
+                setSummaryRefreshVersion((current) => current + 1);
+              }}
+            >
+              <RefreshCw className={summaryLoading ? "animate-spin" : undefined} /> Atualizar
+            </Button>
+          </div>
         </div>
         {summaryError ? (
           <p role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">{summaryError}</p>
@@ -300,6 +316,11 @@ export default function WebhooksPage() {
             {hasStaleQueue && (
               <p role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-800 dark:text-amber-300">
                 Há entrega pronta há mais de 2 minutos. Verifique se o worker de webhooks está ativo.
+              </p>
+            )}
+            {summary && !summary.worker_active && (summary.pending > summary.paused_pending || summary.processing > 0) && (
+              <p role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-800 dark:text-amber-300">
+                Há entregas aguardando processamento, mas o worker não envia heartbeat há pelo menos 30 segundos.
               </p>
             )}
             {Boolean(summary?.paused_pending) && (

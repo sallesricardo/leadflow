@@ -7,7 +7,11 @@ from sqlalchemy.orm import Session
 from app.api.auth import get_current_user
 from app.core.database import get_db
 from app.models.user import User
-from app.models.webhook import WebhookDelivery, WebhookEndpoint
+from app.models.webhook import (
+    WebhookDelivery,
+    WebhookEndpoint,
+    WebhookWorkerHeartbeat,
+)
 from app.schemas.webhook import (
     WebhookCreate,
     WebhookCreated,
@@ -20,6 +24,8 @@ from app.services import webhook_service
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 STALE_QUEUE_AFTER = timedelta(minutes=2)
+WEBHOOK_WORKER_KEY = "webhook-delivery"
+HEARTBEAT_STALE_AFTER_SECONDS = 30
 
 
 @router.get("", response_model=list[WebhookResponse])
@@ -107,6 +113,15 @@ def webhook_delivery_summary(
         .join(WebhookEndpoint, WebhookEndpoint.id == WebhookDelivery.endpoint_id)
         .where(WebhookEndpoint.user_id == current_user.id)
     ).one()
+    heartbeat = db.execute(
+        select(
+            WebhookWorkerHeartbeat.heartbeat_at,
+            (
+                WebhookWorkerHeartbeat.heartbeat_at
+                >= now - timedelta(seconds=HEARTBEAT_STALE_AFTER_SECONDS)
+            ).label("active"),
+        ).where(WebhookWorkerHeartbeat.worker_key == WEBHOOK_WORKER_KEY)
+    ).one_or_none()
     return {
         "pending": result.pending or 0,
         "paused_pending": result.paused_pending or 0,
@@ -118,6 +133,8 @@ def webhook_delivery_summary(
         "oldest_due_pending_at": result.oldest_due_pending_at,
         "stale_pending": bool(result.stale_pending_count),
         "latest_delivery_at": result.latest_delivery_at,
+        "worker_active": bool(heartbeat and heartbeat.active),
+        "worker_last_heartbeat_at": heartbeat.heartbeat_at if heartbeat else None,
     }
 
 
