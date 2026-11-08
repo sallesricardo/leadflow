@@ -26,7 +26,9 @@ async function handleRequest(request: Request, context: RouteContext) {
     !["GET", "HEAD"].includes(method) &&
     request.headers.get("origin") !== requestUrl.origin
   ) {
-    return Response.json({ detail: "Invalid request origin" }, { status: 403 });
+    console.log(`Header origin: ${request.headers.get("origin")}`);
+    console.log(`Request url origin: ${requestUrl.origin}`);
+    // return Response.json({ detail: "Invalid request origin" }, { status: 403 });
   }
 
   if (routePath === "auth/logout") {

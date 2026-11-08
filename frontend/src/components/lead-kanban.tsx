@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   DndContext,
+  DragOverlay,
+  DragStartEvent,
   PointerSensor,
   closestCorners,
   useDraggable,
@@ -12,7 +14,6 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,19 +34,14 @@ const columns: { status: LeadStatus; title: string }[] = [
 ];
 
 function DraggableLead({ lead }: { lead: Lead }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: `lead-${lead.id}` });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    opacity: isDragging ? 0.4 : 1,
-  };
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `lead-${lead.id}`,
+  });
 
   return (
     <article
       ref={setNodeRef}
-      style={style}
-      className="rounded-lg border bg-card p-3 shadow-sm"
+      className={`rounded-lg border bg-card p-3 shadow-sm transition-shadow ${isDragging ? "opacity-30" : "opacity-100"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <Link
@@ -128,6 +124,7 @@ function KanbanColumn({
 }
 
 export function LeadKanban() {
+  const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState("ALL");
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -138,6 +135,14 @@ export function LeadKanban() {
       activationConstraint: { distance: 8 },
     }),
   );
+
+  function handleDragStart(event: DragStartEvent) {
+    const leadId = Number(String(event.active.id).replace("lead-", ""));
+
+    const lead = leads.find((item) => item.id === leadId);
+
+    setActiveLead(lead ?? null);
+  }
 
   useEffect(() => {
     let active = true;
@@ -246,7 +251,10 @@ export function LeadKanban() {
           </p>
         </div>
 
-        <Button nativeButton={false} render={<Link href="/dashboard/leads/new" />}>
+        <Button
+          nativeButton={false}
+          render={<Link href="/dashboard/leads/new" />}
+        >
           <Plus className="mr-2 size-4" />
           Novo lead
         </Button>
@@ -304,7 +312,12 @@ export function LeadKanban() {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
-        onDragEnd={handleDragEnd}
+        onDragStart={handleDragStart}
+        onDragEnd={(event) => {
+          handleDragEnd(event);
+          setActiveLead(null);
+        }}
+        onDragCancel={() => setActiveLead(null)}
       >
         <div className="flex min-w-0 max-w-full gap-4 overflow-x-auto pb-4">
           {columns.map((column) => (
@@ -313,11 +326,37 @@ export function LeadKanban() {
               status={column.status}
               title={column.title}
               leads={filteredLeads.filter(
-                (lead) => lead.status === column.status
+                (lead) => lead.status === column.status,
               )}
             />
           ))}
         </div>
+
+        <DragOverlay>
+          {activeLead ? (
+            <article className="rotate-2 rounded-lg border bg-card p-3 shadow-xl ring-2 ring-primary/30">
+              <p className="font-medium">{activeLead.name}</p>
+
+              {activeLead.email && (
+                <p className="mt-2 truncate text-sm text-muted-foreground">
+                  {activeLead.email}
+                </p>
+              )}
+
+              {activeLead.phone && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {activeLead.phone}
+                </p>
+              )}
+
+              {activeLead.source && (
+                <div className="mt-3">
+                  <Badge variant="secondary">{activeLead.source}</Badge>
+                </div>
+              )}
+            </article>
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );
