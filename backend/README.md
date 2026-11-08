@@ -320,7 +320,13 @@ As tarefas pertencem ao usuário autenticado e ficam associadas a um lead desse 
 
 Usuários autenticados podem cadastrar destinos HTTPS em `POST /api/v1/webhooks`, listar em `GET /api/v1/webhooks`, pausar/reativar e atualizar o token em `PATCH /api/v1/webhooks/{id}`, consultar as últimas entregas em `GET /api/v1/webhooks/{id}/deliveries`, reenfileirar entregas falhas em `POST /api/v1/webhooks/{id}/deliveries/{delivery_id}/retry` e remover destinos em `DELETE /api/v1/webhooks/{id}`. Os eventos disponíveis são `lead.created`, `lead.updated`, `lead.status_changed`, `task.created`, `task.completed` e `task.reopened`. O segredo HMAC é retornado apenas na criação; um token Bearer opcional é enviado no cabeçalho `Authorization` e nunca retornado pela API. O receptor valida `X-LeadFlow-Signature` como HMAC-SHA256 do corpo bruto. Os payloads de lead contêm e-mail, telefone e observações; os de tarefa incluem título, descrição, prazo e lead associado.
 
-As entregas ficam numa fila persistida no banco e usam retentativas com espera crescente. Com Docker Compose, o serviço `webhook-worker` processa a fila automaticamente. Para execução direta no host, rode em outro terminal dentro de `backend/`:
+As entregas ficam numa fila persistida no banco e usam retentativas com espera crescente. Com Docker Compose, o serviço `webhook-worker` processa a fila automaticamente. Os logs do worker registram sucesso, pausa, nova tentativa e falha definitiva com IDs da entrega/destino, tipo de evento, tentativa, status HTTP e espera até a próxima tentativa. O texto bruto dos erros não é escrito nos logs, para não expor detalhes da URL configurada. Para execução direta no host, rode em outro terminal dentro de `backend/`:
+
+Para acompanhar o serviço do Compose:
+
+```bash
+docker compose logs -f webhook-worker
+```
 
 ```bash
 python -m app.webhooks.worker

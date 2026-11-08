@@ -21,6 +21,12 @@ MAX_ATTEMPTS = 8
 DELIVERY_LEASE = timedelta(minutes=2)
 
 
+class WebhookDeliveryError(RuntimeError):
+    def __init__(self, message: str, status_code: int | None = None):
+        super().__init__(message)
+        self.status_code = status_code
+
+
 class PinnedHTTPSConnection(http.client.HTTPSConnection):
     def __init__(self, host: str, port: int, ip_address: str):
         super().__init__(host, port, timeout=8, context=ssl.create_default_context())
@@ -59,6 +65,7 @@ def _deliver(endpoint: WebhookEndpoint, delivery: WebhookDelivery) -> tuple[int,
         target = f"{target}?{parsed.query}"
 
     last_error = None
+    last_status_code = None
     for address in addresses:
         connection = PinnedHTTPSConnection(parsed.hostname, port, address)
         try:
@@ -82,13 +89,16 @@ def _deliver(endpoint: WebhookEndpoint, delivery: WebhookDelivery) -> tuple[int,
             response.read(4096)
             if 200 <= response.status < 300:
                 return response.status, None
+            last_status_code = response.status
             last_error = f"Webhook returned HTTP {response.status}"
         except (OSError, ssl.SSLError, http.client.HTTPException) as error:
             last_error = str(error)[:500]
         finally:
             connection.close()
 
-    raise RuntimeError(last_error or "Webhook delivery failed")
+    raise WebhookDeliveryError(
+        last_error or "Webhook delivery failed", status_code=last_status_code
+    )
 
 
 def process_one() -> bool:
@@ -115,6 +125,12 @@ def process_one() -> bool:
             delivery.status = "pending"
             delivery.available_at = now + timedelta(minutes=1)
             db.commit()
+            logger.info(
+                "webhook delivery deferred delivery_id=%s endpoint_id=%s event_type=%s reason=endpoint_paused retry_in_seconds=60",
+                delivery.id,
+                endpoint.id,
+                delivery.event_type,
+            )
             return True
 
         delivery.status = "processing"
@@ -126,9 +142,17 @@ def process_one() -> bool:
             delivery.status = "failed"
             delivery.last_error = "Webhook endpoint is unavailable"
             db.commit()
+            logger.error(
+                "webhook delivery failed delivery_id=%s endpoint_id=%s event_type=%s attempt=%s reason=endpoint_unavailable",
+                delivery.id,
+                delivery.endpoint_id,
+                delivery.event_type,
+                delivery.attempt_count,
+            )
             return True
 
         try:
+            delivery.last_status_code = None
             status_code, _ = _deliver(endpoint, delivery)
             delivery.status = "delivered"
             delivery.last_status_code = status_code
@@ -136,15 +160,38 @@ def process_one() -> bool:
             delivery.delivered_at = datetime.now(UTC)
         except Exception as error:
             delivery.last_error = str(error)[:500]
+            if isinstance(error, WebhookDeliveryError) and error.status_code:
+                delivery.last_status_code = error.status_code
             if delivery.attempt_count >= MAX_ATTEMPTS:
                 delivery.status = "failed"
+                retry_seconds = None
             else:
                 delivery.status = "pending"
                 retry_seconds = min(10 * (2 ** (delivery.attempt_count - 1)), 3600)
                 delivery.available_at = datetime.now(UTC) + timedelta(seconds=retry_seconds)
-            logger.warning("Webhook delivery %s failed: %s", delivery.id, error)
+            logger.log(
+                logging.ERROR if delivery.status == "failed" else logging.WARNING,
+                "webhook delivery failed delivery_id=%s endpoint_id=%s event_type=%s attempt=%s outcome=%s http_status=%s retry_in_seconds=%s error_type=%s",
+                delivery.id,
+                endpoint.id,
+                delivery.event_type,
+                delivery.attempt_count,
+                delivery.status,
+                delivery.last_status_code,
+                retry_seconds,
+                type(error).__name__,
+            )
 
         db.commit()
+        if delivery.status == "delivered":
+            logger.info(
+                "webhook delivery succeeded delivery_id=%s endpoint_id=%s event_type=%s attempt=%s http_status=%s",
+                delivery.id,
+                endpoint.id,
+                delivery.event_type,
+                delivery.attempt_count,
+                delivery.last_status_code,
+            )
     return True
 
 
