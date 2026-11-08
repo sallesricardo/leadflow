@@ -313,9 +313,9 @@ http://localhost:8000/docs
 
 ### Ainda pendentes
 
-- [ ] Webhooks e automações (webhooks e regra inicial de criação automática de tarefas; validação funcional e integrações adicionais pendentes)
-- [ ] Integração com WhatsApp
-- [ ] Observabilidade e hardening para produção
+- [x] Webhooks e automação inicial de criação de tarefas (fluxo validado por testes)
+- [ ] Integração com WhatsApp (adiada até haver credenciais Meta; proposta em [docs/whatsapp-integration-plan.md](docs/whatsapp-integration-plan.md))
+- [ ] Observabilidade e hardening para produção (em andamento: logs HTTP com request ID e readiness check do banco)
 - [ ] Deploy e demo online (infra preparada; domínio, zona Cloudflare e provisionamento ainda pendentes)
 
 ## Roadmap
@@ -326,8 +326,8 @@ M1–M6 (CRUD, autenticação, pipeline, atividades, métricas e tarefas) estão
 M4.5  Revisão visual, responsividade e consistência da UI (concluído)
 M5    Métricas e testes automatizados implementados
 M6    Tarefas vinculadas a leads, prazos e conclusão (implementado)
-M7    Webhooks, automações e integrações (em andamento: webhooks e automação inicial de tarefas)
-M8    Observabilidade, produção e deploy
+M7    Webhooks e automação inicial implementados; integração com WhatsApp planejada
+M8    Observabilidade e hardening em andamento; deploy adiado a pedido do usuário
 ```
 
 Testes automatizados existentes: backend com `docker compose --profile test run --build --rm test` e frontend com `cd frontend && npm test`. As duas suítes já foram executadas com sucesso.

@@ -161,6 +161,8 @@ Health check:
 GET /health
 ```
 
+`/health` verifica que o processo HTTP está ativo. `GET /health/ready` verifica também a conexão com o banco e retorna `503` quando a API não está pronta para atender requisições. As requisições da API são registradas com método, caminho, status, duração e `X-Request-ID`; não registre tokens nem corpos de requisição.
+
 ### Execução com Docker Compose
 
 Na raiz do repositório, inicie o PostgreSQL e a API. O serviço da API aplica as migrations antes de iniciar o servidor:
