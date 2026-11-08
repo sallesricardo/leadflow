@@ -131,7 +131,7 @@ Após o login, o BFF guarda o JWT em um cookie `HttpOnly`, `Secure` em produçã
 
 ## Comunicação com a API
 
-O Route Handler `src/app/api/[...path]/route.ts` implementa o BFF: encaminha as rotas `/api/v1/*` ao backend configurado em `BACKEND_API_URL`, controla login/logout e mantém o JWT no cookie de sessão HttpOnly. Requisições que alteram dados também validam a origem. Cada chamada encaminhada recebe um `X-Request-ID`, gerado pelo BFF e devolvido na resposta para correlacionar com o log da API.
+O Route Handler `src/app/api/[...path]/route.ts` implementa o BFF: encaminha as rotas `/api/v1/*` ao backend configurado em `BACKEND_API_URL`, controla login/logout e mantém o JWT no cookie de sessão HttpOnly. Requisições que alteram dados também validam a origem. Cada chamada encaminhada recebe um `X-Request-ID`, gerado pelo BFF e devolvido na resposta para correlacionar com o log da API. Falhas de conexão com o backend são registradas no log do servidor com o identificador, método e tipo de erro, sem registrar URL, query string, token ou corpo.
 
 As requisições são centralizadas em:
 

@@ -143,7 +143,12 @@ async function handleRequest(request: Request, context: RouteContext) {
       status: upstream.status,
       headers: responseHeaders,
     });
-  } catch {
+  } catch (error) {
+    console.error("BFF upstream request failed", {
+      requestId,
+      method,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+    });
     return Response.json(
       { detail: "Backend indisponível" },
       {
