@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:18
+    container_name: leadflow-db
+    environment:
+      POSTGRES_DB: ${LEADFLOW_DB:-leadflow}
+      POSTGRES_USER: ${LEADFLOW_USER:-leadflow}
+      POSTGRES_PASSWORD: ${LEADFLOW_PASS:-leadflow}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/18/docker
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leadflow -d leadflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      PORT: "8000"
+      DATABASE_URL: ${DB_URL:-postgresql+psycopg://leadflow:leadflow@db:5432/leadflow}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-leadflow-local-dev-secret-change-me}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+    volumes:
+      - ./backend:/app
+    user: "${UID:-1000}:${GID:-1000}"
+    command: ["uvicorn", "app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+
+  webhook-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.webhooks.worker"]
+    environment:
+      DATABASE_URL: ${DB_URL:-postgresql+psycopg://leadflow:leadflow@db:5432/leadflow}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-leadflow-local-dev-secret-change-me}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      BACKEND_API_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    user: "${UID}:${GID}"
+    depends_on:
+      - api
+    command: ["npm", "run", "dev"]
+
+volumes:
+  postgres_data:

@@ -1,28 +1,11 @@
 services:
-  db:
-    image: postgres:16
-    container_name: leadflow-db
-    environment:
-      POSTGRES_DB: leadflow
-      POSTGRES_USER: leadflow
-      POSTGRES_PASSWORD: leadflow
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U leadflow -d leadflow"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   api:
     build:
       context: ./backend
       dockerfile: Dockerfile
     environment:
       PORT: "8000"
-      DATABASE_URL: postgresql+psycopg://leadflow:leadflow@db:5432/leadflow
+      DATABASE_URL: ${DB_URL:-postgresql+psycopg://leadflow:leadflow@db:5432/leadflow}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-leadflow-local-dev-secret-change-me}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
@@ -38,9 +21,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-    depends_on:
-      db:
-        condition: service_healthy
 
   webhook-worker:
     build:
@@ -48,32 +28,31 @@ services:
       dockerfile: Dockerfile
     command: ["python", "-m", "app.webhooks.worker"]
     environment:
-      DATABASE_URL: postgresql+psycopg://leadflow:leadflow@db:5432/leadflow
+      DATABASE_URL: ${DB_URL:-postgresql+psycopg://leadflow:leadflow@db:5432/leadflow}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-leadflow-local-dev-secret-change-me}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
-    depends_on:
-      api:
-        condition: service_healthy
+
   web:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
+      NODE_ENV: production
       PORT: 3000
       BACKEND_API_URL: http://api:8000
     ports:
       - "3000:3000"
-    depends_on:
-      api:
-        condition: service_healthy
     command: ["node", "server.js"]
 
-  test:
+  test-api:
     profiles: ["test"]
     build:
       context: ./backend
       dockerfile: Dockerfile.test
 
-volumes:
-  postgres_data:
+  test-web:
+    profiles: ["test"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test

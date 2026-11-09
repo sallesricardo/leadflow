@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:18
+    container_name: leadflow-db
+    environment:
+      POSTGRES_DB: ${LEADFLOW_DB:-leadflow}
+      POSTGRES_USER: ${LEADFLOW_USER:-leadflow}
+      POSTGRES_PASSWORD: ${LEADFLOW_PASS:-leadflow}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/18/docker
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leadflow -d leadflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
