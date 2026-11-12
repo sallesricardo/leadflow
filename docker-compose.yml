@@ -39,10 +39,10 @@ services:
       dockerfile: Dockerfile
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: ${PORT:-3000}
       BACKEND_API_URL: http://api:8000
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:${PORT:-3000}"
     command: ["node", "server.js"]
 
   test-api:

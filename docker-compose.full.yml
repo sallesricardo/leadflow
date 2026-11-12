@@ -2,6 +2,7 @@ services:
   db:
     image: postgres:18
     container_name: leadflow-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${LEADFLOW_DB:-leadflow}
       POSTGRES_USER: ${LEADFLOW_USER:-leadflow}
@@ -10,6 +11,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/18/docker
+    networks:
+      - app-internal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U leadflow -d leadflow"]
       interval: 5s
@@ -17,19 +20,45 @@ services:
       retries: 5
 
   api:
+    restart: unless-stopped
+    networks:
+      - app-internal
     depends_on:
       db:
         condition: service_healthy
 
   webhook-worker:
+    restart: unless-stopped
+    networks:
+      - app-internal
     depends_on:
       api:
         condition: service_healthy
 
   web:
+    restart: unless-stopped
+    networks:
+      - app-internal
+      - proxy
     depends_on:
       api:
         condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+
+      - "traefik.http.routers.leadflow.rule=Host(`${APP_HOST}`)"
+      - "traefik.http.routers.leadflow.entrypoints=websecure"
+      - "traefik.http.routers.leadflow.tls.certresolver=le"
+
+      - "traefik.http.services.leadflow.loadbalancer.server.port=${PORT}"
+
+networks:
+  proxy:
+    external: true
+    name: proxy
+  app-internal:
+    internal: true
 
 volumes:
   postgres_data:
