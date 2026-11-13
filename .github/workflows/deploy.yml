@@ -124,6 +124,7 @@ jobs:
         run: |
           docker run --rm \
             -e DATABASE_URL \
+            -e JWT_SECRET_KEY \
             "${BACKEND_IMAGE}:${IMAGE_TAG}" \
             alembic upgrade head
 
