@@ -120,6 +120,7 @@ jobs:
       - name: Run Alembic migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET_KEY: migration-placeholder-not-used
         run: |
           docker run --rm \
             -e DATABASE_URL \
