@@ -10,6 +10,7 @@ services:
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
     networks:
       - app-internal
+      - egress
     healthcheck:
       test:
         - CMD
@@ -32,6 +33,7 @@ services:
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
     networks:
       - app-internal
+      - egress
     depends_on:
       api:
         condition: service_healthy
@@ -65,3 +67,5 @@ networks:
   app-internal:
     internal: true
 
+  egress:
+    driver: bridge
